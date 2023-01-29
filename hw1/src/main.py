@@ -22,7 +22,7 @@ RESULT_LIMIT = 10
 QUERIES_SET_PATH = "./../data/100QueriesSet3.txt"
 RESULTS_OUTPUT_FILE_PATH = "./../submission/hw1.json"
 CHECKPOINT_FILE_PATH = "./checkpoint.txt"
-TOTAL_QUERIES = 100
+TOTAL_N_OF_QUERIES = 100
 
 
 ################################################################################################
@@ -57,6 +57,7 @@ def main(
     queries_set_file_path: str,
     results_output_file_path: str,
     n_queries_to_search: int,
+    total_n_of_queries: int,
     use_checkpoint: bool,
     result_limit: int,
 ):
@@ -70,11 +71,17 @@ def main(
     queries = read_queries(queries_set_file_path, from_line=checkpoint)
     logger.info(f"Retrieved query count: {len(queries)}")
 
+    queries = queries[:n_queries_to_search]
+    logger.info(f"# of queries to search: {n_queries_to_search}")
+
     count = 1
+
+    logger.info(f"Total # of Queries: {total_n_of_queries}")
+    logger.info("Starting Search ...")
 
     # start search engine crawling
     for query in queries:
-        logger.info(f"Query No #{checkpoint + 1}; Query: {query}")
+        logger.info(f"Query #{checkpoint + 1}; Query: {query}")
 
         # perform search
         results = SearchEngine.search(
@@ -102,6 +109,8 @@ def main(
 
         break
 
+    logger.info(f"Search Completed Successfully!! for {count} queries")
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
@@ -109,17 +118,19 @@ if __name__ == "__main__":
         description="This program takes in queries, performs search on ask.com using those queries and store the results in JSON format",
         epilog="Information Retrieval",
     )
-    parser.add_argument("queries_set_file", type=str, default=QUERIES_SET_PATH)
-    parser.add_argument("results_output_file", type=str, default=RESULTS_OUTPUT_FILE_PATH)
-    parser.add_argument("n_queries_to_search", type=int, default=TOTAL_QUERIES)
-    parser.add_argument("use_checkpoint", type=bool, default=True)
-    parser.add_argument("result_limit", type=str, default=10)
+    parser.add_argument("--queries_set_file", type=str, default=QUERIES_SET_PATH)
+    parser.add_argument("--results_output_file", type=str, default=RESULTS_OUTPUT_FILE_PATH)
+    parser.add_argument("--n_queries_to_search", type=int, default=1)
+    parser.add_argument("--total_n_of_queries", type=int, default=TOTAL_N_OF_QUERIES)
+    parser.add_argument("--use_checkpoint", type=bool, default=True)
+    parser.add_argument("--result_limit", type=str, default=10)
 
     args = parser.parse_args()
     main(
-        args.queries_set_file,
-        args.results_output_file,
-        args.n_queries_to_search,
-        args.use_checkpoint,
-        args.result_limit,
+        queries_set_file_path=args.queries_set_file,
+        results_output_file_path=args.results_output_file,
+        n_queries_to_search=args.n_queries_to_search,
+        total_n_of_queries=args.total_n_of_queries,
+        use_checkpoint=args.use_checkpoint,
+        result_limit=args.result_limit,
     )
