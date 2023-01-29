@@ -48,6 +48,9 @@ class SearchEngine:
             logger.info(f"Requested: {result_page.url}")
             logger.info(f"Search Engine Response Status Code: {result_page.status_code}")
 
+            if result_page.status_code != 200:
+                raise Exception(f"Server returned {result_page.status_code} for query: {result_page.url}")
+
             soup = BeautifulSoup(result_page.text, "html.parser")
 
             # avoid duplicate results

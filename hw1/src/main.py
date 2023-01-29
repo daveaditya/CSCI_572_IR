@@ -87,16 +87,33 @@ def main(
         logger.info(f"Query #{checkpoint + 1}; Query: {query}")
 
         # perform search
-        results = SearchEngine.search(
-            SEARCH_ENGINE_URL,
-            query,
-            SEARCH_RESULT_SELECTOR,
-            can_search_further_func=can_search_further_func,
-            result_limit=result_limit,
-            should_sleep=True,
-        )
+        try:
+            results = SearchEngine.search(
+                SEARCH_ENGINE_URL,
+                query,
+                SEARCH_RESULT_SELECTOR,
+                can_search_further_func=can_search_further_func,
+                result_limit=result_limit,
+                should_sleep=True,
+            )
 
-        batched_results[query] = results
+            batched_results[query] = results
+        except:
+            logger.info("An error occurred while searching. Saving the unsaved work and exiting")
+
+            if len(batched_results) > 0:
+                logger.info(f"Saving the last batch which might not be full.")
+
+                # store result
+                save_results(results_output_file_path, {query: results})
+                logger.info(f"Results Saved: {len(results)}")
+
+                # write checkpoint
+                save_checkpoint(CHECKPOINT_FILE_PATH, checkpoint)
+                logger.info("Checkpoint saved")
+
+            exit(1)
+
 
         if len(batched_results) % save_batch_size == 0:
             logger.info(f"Batch filled, now saving.")
