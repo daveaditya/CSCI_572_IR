@@ -1,22 +1,33 @@
+import argparse
 import logging
 import re
 
 from search_engine import SearchEngine
 from utils import *
 
+################################################################################################
+### Config
+################################################################################################
 logging.basicConfig(format="%(asctime)-15s [%(levelname)s] %(funcName)s: %(message)s", level=logging.INFO)
 logger = logging.getLogger()
 
+
+################################################################################################
+### Constants
+################################################################################################
 SEARCH_ENGINE_URL = "https://www.ask.com/web"
 SEARCH_RESULT_SELECTOR = "PartialSearchResults-item-title-link result-link"
 RESULT_LIMIT = 10
 
 QUERIES_SET_PATH = "./../data/100QueriesSet3.txt"
 RESULTS_OUTPUT_FILE_PATH = "./../submission/hw1.json"
-CHECKPOINT_FILE_PATH = "./../checkpoint.txt"
+CHECKPOINT_FILE_PATH = "./checkpoint.txt"
 TOTAL_QUERIES = 100
 
 
+################################################################################################
+### Support Functions
+################################################################################################
 def can_search_further_func(soup, result_limit: int):
     prog = re.compile(r"\d+")
 
@@ -39,14 +50,27 @@ def can_search_further_func(soup, result_limit: int):
     return should_search_further
 
 
-def main():
-    # load queries from checkout
-    checkpoint = read_checkpoint(CHECKPOINT_FILE_PATH)
-    logger.info(f"Checkpoint Query: {checkpoint + 1}")
+################################################################################################
+### Main Program
+################################################################################################
+def main(
+    queries_set_file_path: str,
+    results_output_file_path: str,
+    n_queries_to_search: int,
+    use_checkpoint: bool,
+    result_limit: int,
+):
+    checkpoint = 0
+    if use_checkpoint:
+        # load queries from checkout
+        checkpoint = read_checkpoint(CHECKPOINT_FILE_PATH)
+        logger.info(f"Checkpoint Query: {checkpoint + 1}")
 
     logger.info("Retrieving queries")
-    queries = read_queries(QUERIES_SET_PATH, from_line=checkpoint)
+    queries = read_queries(queries_set_file_path, from_line=checkpoint)
     logger.info(f"Retrieved query count: {len(queries)}")
+
+    count = 1
 
     # start search engine crawling
     for query in queries:
@@ -54,11 +78,16 @@ def main():
 
         # perform search
         results = SearchEngine.search(
-            SEARCH_ENGINE_URL, query, SEARCH_RESULT_SELECTOR, can_search_further_func, RESULT_LIMIT, should_sleep=True
+            SEARCH_ENGINE_URL,
+            query,
+            SEARCH_RESULT_SELECTOR,
+            can_search_further_func,
+            result_limit=result_limit,
+            should_sleep=True,
         )
 
         # store result
-        save_results(RESULTS_OUTPUT_FILE_PATH, {query: results})
+        save_results(results_output_file_path, {query: results})
         logger.info(f"Results Saved: {len(results)}")
 
         # update and write checkpoint
@@ -66,8 +95,31 @@ def main():
         save_checkpoint(CHECKPOINT_FILE_PATH, checkpoint)
         logger.info("Checkpoint saved")
 
+        if count == n_queries_to_search:
+            logger.info(f"Successfully completed: {n_queries_to_search} searches")
+            break
+        count += 1
+
         break
 
 
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser(
+        prog="Ask.com Search Crawler",
+        description="This program takes in queries, performs search on ask.com using those queries and store the results in JSON format",
+        epilog="Information Retrieval",
+    )
+    parser.add_argument("queries_set_file", type=str, default=QUERIES_SET_PATH)
+    parser.add_argument("results_output_file", type=str, default=RESULTS_OUTPUT_FILE_PATH)
+    parser.add_argument("n_queries_to_search", type=int, default=TOTAL_QUERIES)
+    parser.add_argument("use_checkpoint", type=bool, default=True)
+    parser.add_argument("result_limit", type=str, default=10)
+
+    args = parser.parse_args()
+    main(
+        args.queries_set_file,
+        args.results_output_file,
+        args.n_queries_to_search,
+        args.use_checkpoint,
+        args.result_limit,
+    )
