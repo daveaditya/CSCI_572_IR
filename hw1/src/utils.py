@@ -69,7 +69,7 @@ def save_results(file_path: str, results):
 
 def read_checkpoint(file_path: str):
 
-    if not exists(file_path):
+    if not exists(file_path):  # If the file does not exist, create one with checkpoint 0
         logger.info(f"Creating {file_path} file")
         with open(file_path, mode="a+") as file:
             json.dump(0, file, ensure_ascii=False, indent=4)
@@ -83,34 +83,39 @@ def read_checkpoint(file_path: str):
 
 def save_checkpoint(file_path: str, query_idx: int):
     with open(file_path, mode="w") as file:
+        logger.info(f"Saving checkpoint: {query_idx} in file: {file_path}")
         json.dump(query_idx, file, ensure_ascii=False, indent=4)
 
 
 def url_sanitizer(urls: List[str]) -> List[str]:
     # takes a list of URLs and returns processed list
-    normalized_urls = list()
-    for url in urls:
-        url = url.replace("www.", "")
-        url = url.replace("https://", "http://")
-        url = url.strip("/")
-        normalized_urls.append(url)
+    sanitized_urls = list()
 
-    return normalized_urls
+    for url in urls:  # loop over all overs and sanitize them
+        url = url.replace("www.", "")  # remove www.
+        url = url.replace("https://", "http://")  # convert https to http
+        url = url.strip("/")  # remove trailing /
+        sanitized_urls.append(url)
+
+    return sanitized_urls
 
 
 def power(nums: List[int], y: int):
+    # performs x^y for all the elements in the list
     return list(map(lambda x: pow(x, y), nums))
 
 
 def spearmans_rho(diff: List[Tuple[int, int]]):
-    overlap = len(diff)
-    if overlap == 0:
+
+    overlap = len(diff)  # count total overlaps
+
+    if overlap == 0:  # if no overlap, rho should be zero
         rho = 0
-    elif overlap == 1:
-        if sum(diff) == 0:
+    elif overlap == 1:  # if the overlap is exactly one
+        if sum(diff) == 0:  # rho is 1 if sum of sum is 1
             rho = 1
-        else:
+        else:  # else rho is 0
             rho = 0
-    else:
+    else:  # calculate spearman's coefficient for overlap > 1
         rho = 1 - ((6 * sum(power(diff, 2))) / (overlap * (pow(overlap, 2) - 1)))
     return overlap, rho

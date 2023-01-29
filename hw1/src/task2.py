@@ -24,23 +24,31 @@ OUTPUT_FILE_PATH = "./../submission/hw1.csv"
 ################################################################################################
 def main(reference_search_results_file_path: str, opponent_search_results_file_path: str, output_file_path: str):
     reference_results = load_results(reference_search_results_file_path)  # read reference results
+    logger.info(f"# of reference results: {len(reference_results)}")
+
     opponent_results = load_results(opponent_search_results_file_path)  # read opponent results
+    logger.info(f"# of opponent results: {len(opponent_results)}")
 
-    queries = reference_results.keys()
+    queries = reference_results.keys()  # get all reference search engine queries
 
-    result = [["Queries", "Number of Overlapping Results", "Percent Overlap", "Spearman Coefficient"]]
+    statistics = [["Queries", "Number of Overlapping Results", "Percent Overlap", "Spearman Coefficient"]]
 
     count = 0
     total_overlap = 0
     total_overlap_percent = 0
     total_rho = 0
 
-    for idx, query in enumerate(queries):
+    for idx, query in enumerate(queries):  # loop over all queries
+        logger.info(f"Query #{idx}; Query: {query}")
+
+        # sanitize URLs
         sanitized_reference_results = url_sanitizer(reference_results[query])
         sanitized_opponent_results = url_sanitizer(opponent_results[query])
 
         diff = list()
 
+        # loop over all results for query, and retrieve index of matching corresponding
+        # URLs and calculate difference in indices
         for ref_idx, url in enumerate(sanitized_reference_results):
             try:
                 opp_idx = sanitized_opponent_results.index(url)
@@ -48,21 +56,38 @@ def main(reference_search_results_file_path: str, opponent_search_results_file_p
             except:
                 pass
 
-        overlap, rho = spearmans_rho(diff)
-        overlap_percent = (overlap / len(sanitized_reference_results)) * 100
+        overlap, rho = spearmans_rho(diff)  # calculate overlap, and spearmans rank coefficient
+        overlap_percent = (overlap / len(sanitized_reference_results)) * 100  # calculate overlap percentage
 
-        total_overlap += overlap
-        total_overlap_percent += overlap_percent
-        total_rho += rho
+        total_overlap += overlap  # maintain sum of overlaps from
+        total_overlap_percent += overlap_percent  # maintain sum of overlap percentage
+        total_rho += rho  # maintain sum of rho values
 
-        result.append([f"Query {idx + 1}", overlap, overlap_percent, rho])
+        result = [f"Query {idx + 1}", overlap, overlap_percent, rho]
+
+        logger.info(f"Result: {','.join(result)}")
+
+        statistics.append(result)  # save current results
+
         count += 1
 
-    result.append(["Averages", total_overlap / count, total_overlap_percent / count, total_rho / count])
+    final_result = ["Averages", total_overlap / count, total_overlap_percent / count, total_rho / count]
 
+    # calculate average of overlap, overlap percent and rho values
+    statistics.append(final_result)
+
+    logger.info(f"Final ... {final_result}")
+
+    # save the results in CSV format
     with open(output_file_path, mode="w") as file:
+        logger.info(f"Writing statistics to file: {output_file_path}")
+
         csv_writer = csv.writer(file, delimiter=",", quotechar='"', quoting=csv.QUOTE_MINIMAL)
-        csv_writer.writerows(result)
+        csv_writer.writerows(statistics)
+
+        logger.info("File written successfully!")
+
+    logger.info("Statistics Calculate Successfully!!!")
 
 
 if __name__ == "__main__":
