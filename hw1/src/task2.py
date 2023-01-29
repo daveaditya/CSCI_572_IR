@@ -39,7 +39,7 @@ def main(reference_search_results_file_path: str, opponent_search_results_file_p
     total_rho = 0
 
     for idx, query in enumerate(queries):  # loop over all queries
-        logger.info(f"Query #{idx}; Query: {query}")
+        logger.info(f"Query #{idx + 1}; Query: {query}")
 
         # sanitize URLs
         sanitized_reference_results = url_sanitizer(reference_results[query])
@@ -65,7 +65,7 @@ def main(reference_search_results_file_path: str, opponent_search_results_file_p
 
         result = [f"Query {idx + 1}", overlap, overlap_percent, rho]
 
-        logger.info(f"Result: {','.join(result)}")
+        logger.info(f"Result: {','.join(str(x) for x in result)}")
 
         statistics.append(result)  # save current results
 
@@ -76,7 +76,7 @@ def main(reference_search_results_file_path: str, opponent_search_results_file_p
     # calculate average of overlap, overlap percent and rho values
     statistics.append(final_result)
 
-    logger.info(f"Final ... {final_result}")
+    logger.info(f"Final ... {','.join(str(x) for x in final_result)}")
 
     # save the results in CSV format
     with open(output_file_path, mode="w") as file:
