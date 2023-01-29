@@ -114,6 +114,8 @@ def main(
 
             exit(1)
 
+        # query is processed, hence checkpoint increases by 1
+        checkpoint += 1
 
         if len(batched_results) % save_batch_size == 0:
             logger.info(f"Batch filled, now saving.")
@@ -128,9 +130,6 @@ def main(
 
             # empty batch to fill again
             batched_results = dict()
-
-        # update checkpoint
-        checkpoint += 1
 
         if count == n_queries_to_search:
             if len(batched_results) > 0:
