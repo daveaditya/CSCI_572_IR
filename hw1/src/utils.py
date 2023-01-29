@@ -86,7 +86,7 @@ def save_checkpoint(file_path: str, query_idx: int):
         json.dump(query_idx, file, ensure_ascii=False, indent=4)
 
 
-def sanitize_urls(urls: List[str]) -> List[str]:
+def url_sanitizer(urls: List[str]) -> List[str]:
     # takes a list of URLs and returns processed list
     normalized_urls = list()
     for url in urls:
