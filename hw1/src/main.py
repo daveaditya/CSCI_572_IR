@@ -147,7 +147,7 @@ if __name__ == "__main__":
     parser.add_argument("--total_n_of_queries", type=int, default=TOTAL_N_OF_QUERIES)
     parser.add_argument("--save_batch_size", type=int, default=5)
     parser.add_argument("--use_checkpoint", type=bool, default=True)
-    parser.add_argument("--result_limit", type=str, default=10)
+    parser.add_argument("--result_limit", type=int, default=10)
 
     args = parser.parse_args()
     main(
