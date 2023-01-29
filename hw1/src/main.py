@@ -58,6 +58,7 @@ def main(
     results_output_file_path: str,
     n_queries_to_search: int,
     total_n_of_queries: int,
+    save_batch_size: int,
     use_checkpoint: bool,
     result_limit: int,
 ):
@@ -79,6 +80,8 @@ def main(
     logger.info(f"Total # of Queries: {total_n_of_queries}")
     logger.info("Starting Search ...")
 
+    batched_results = dict()
+
     # start search engine crawling
     for query in queries:
         logger.info(f"Query #{checkpoint + 1}; Query: {query}")
@@ -88,26 +91,46 @@ def main(
             SEARCH_ENGINE_URL,
             query,
             SEARCH_RESULT_SELECTOR,
-            can_search_further_func,
+            can_search_further_func=can_search_further_func,
             result_limit=result_limit,
             should_sleep=True,
         )
 
-        # store result
-        save_results(results_output_file_path, {query: results})
-        logger.info(f"Results Saved: {len(results)}")
+        batched_results[query] = results
 
-        # update and write checkpoint
+        if len(batched_results) % save_batch_size == 0:
+            logger.info(f"Batch filled, now saving.")
+
+            # store result
+            save_results(results_output_file_path, {query: results})
+            logger.info(f"Results Saved: {len(results)}")
+
+            # write checkpoint
+            save_checkpoint(CHECKPOINT_FILE_PATH, checkpoint)
+            logger.info("Checkpoint saved")
+
+            # empty batch to fill again
+            batched_results = dict()
+
+        # update checkpoint
         checkpoint += 1
-        save_checkpoint(CHECKPOINT_FILE_PATH, checkpoint)
-        logger.info("Checkpoint saved")
 
         if count == n_queries_to_search:
+            if len(batched_results) > 0:
+                logger.info(f"Saving the last batch which might not be full.")
+
+                # store result
+                save_results(results_output_file_path, {query: results})
+                logger.info(f"Results Saved: {len(results)}")
+
+                # write checkpoint
+                save_checkpoint(CHECKPOINT_FILE_PATH, checkpoint)
+                logger.info("Checkpoint saved")
+
             logger.info(f"Successfully completed: {n_queries_to_search} searches")
             break
-        count += 1
 
-        break
+        count += 1
 
     logger.info(f"Search Completed Successfully!! for {count} queries")
 
@@ -120,8 +143,9 @@ if __name__ == "__main__":
     )
     parser.add_argument("--queries_set_file", type=str, default=QUERIES_SET_PATH)
     parser.add_argument("--results_output_file", type=str, default=RESULTS_OUTPUT_FILE_PATH)
-    parser.add_argument("--n_queries_to_search", type=int, default=1)
+    parser.add_argument("--n_queries_to_search", type=int, default=10)
     parser.add_argument("--total_n_of_queries", type=int, default=TOTAL_N_OF_QUERIES)
+    parser.add_argument("--save_batch_size", type=int, default=5)
     parser.add_argument("--use_checkpoint", type=bool, default=True)
     parser.add_argument("--result_limit", type=str, default=10)
 
@@ -131,6 +155,7 @@ if __name__ == "__main__":
         results_output_file_path=args.results_output_file,
         n_queries_to_search=args.n_queries_to_search,
         total_n_of_queries=args.total_n_of_queries,
+        save_batch_size=args.save_batch_size,
         use_checkpoint=args.use_checkpoint,
         result_limit=args.result_limit,
     )
