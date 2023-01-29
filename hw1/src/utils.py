@@ -1,4 +1,3 @@
-from collections import OrderedDict
 import json
 import logging
 from os.path import exists
