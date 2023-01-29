@@ -105,12 +105,13 @@ def main(
                 logger.info(f"Saving the last batch which might not be full.")
 
                 # store result
-                save_results(results_output_file_path, {query: results})
-                logger.info(f"Results Saved: {len(results)}")
+                save_results(results_output_file_path, batched_results)
+                logger.info(f"Batched Results Saved: {len(batched_results)}")
 
-                # write checkpoint
-                save_checkpoint(CHECKPOINT_FILE_PATH, checkpoint)
-                logger.info("Checkpoint saved")
+                if use_checkpoint:
+                     # write checkpoint
+                    save_checkpoint(CHECKPOINT_FILE_PATH, checkpoint)
+                    logger.info("Checkpoint saved")
 
             exit(1)
 
@@ -121,12 +122,13 @@ def main(
             logger.info(f"Batch filled, now saving.")
 
             # store result
-            save_results(results_output_file_path, {query: results})
-            logger.info(f"Results Saved: {len(results)}")
+            save_results(results_output_file_path, batched_results)
+            logger.info(f"Batched Results Saved: {len(batched_results)}")
 
-            # write checkpoint
-            save_checkpoint(CHECKPOINT_FILE_PATH, checkpoint)
-            logger.info("Checkpoint saved")
+            if use_checkpoint:
+                # write checkpoint
+                save_checkpoint(CHECKPOINT_FILE_PATH, checkpoint)
+                logger.info("Checkpoint saved")
 
             # empty batch to fill again
             batched_results = dict()
@@ -136,12 +138,13 @@ def main(
                 logger.info(f"Saving the last batch which might not be full.")
 
                 # store result
-                save_results(results_output_file_path, {query: results})
-                logger.info(f"Results Saved: {len(results)}")
+                save_results(results_output_file_path, batched_results)
+                logger.info(f"Batched Results Saved: {len(batched_results)}")
 
-                # write checkpoint
-                save_checkpoint(CHECKPOINT_FILE_PATH, checkpoint)
-                logger.info("Checkpoint saved")
+                if use_checkpoint:
+                    # write checkpoint
+                    save_checkpoint(CHECKPOINT_FILE_PATH, checkpoint)
+                    logger.info("Checkpoint saved")
 
             logger.info(f"Successfully completed: {n_queries_to_search} searches")
             break
