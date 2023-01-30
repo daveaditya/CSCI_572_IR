@@ -16,7 +16,7 @@ logger = logging.getLogger()
 ### Constants
 ################################################################################################
 SEARCH_ENGINE_URL = "https://www.ask.com/web"
-SEARCH_RESULT_SELECTOR = "PartialSearchResults-item-title-link result-link"
+SEARCH_RESULT_SELECTOR = {"class": "PartialSearchResults-item-title-link result-link"}
 RESULT_LIMIT = 10
 
 QUERIES_SET_PATH = "./../data/100QueriesSet3.txt"
