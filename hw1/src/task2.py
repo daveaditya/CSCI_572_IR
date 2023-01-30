@@ -36,7 +36,7 @@ def main(reference_search_results_file_path: str, opponent_search_results_file_p
     count = 0
     total_overlap = 0
     total_overlap_percent = 0
-    total_rho = 0
+    total_rank_correlation = 0
 
     for idx, query in enumerate(queries):  # loop over all queries
         logger.info(f"Query #{idx + 1}; Query: {query}")
@@ -59,11 +59,15 @@ def main(reference_search_results_file_path: str, opponent_search_results_file_p
         overlap, rho = spearmans_rho(diff)  # calculate overlap, and spearmans rank coefficient
         overlap_percent = (overlap / len(sanitized_reference_results)) * 100  # calculate overlap percentage
 
+        # TODO: Verify this.
+        # if the overlap is not full, need to multiple rho with overlap percentage
+        rank_correlation = (overlap_percent / 100) * rho
+
         total_overlap += overlap  # maintain sum of overlaps from
         total_overlap_percent += overlap_percent  # maintain sum of overlap percentage
-        total_rho += rho  # maintain sum of rho values
+        total_rank_correlation += rank_correlation  # maintain sum of rho values
 
-        result = [f"Query {idx + 1}", overlap, overlap_percent, rho]
+        result = [f"Query {idx + 1}", overlap, overlap_percent, rank_correlation]
 
         logger.info(f"Result: {','.join(str(x) for x in result)}")
 
@@ -71,7 +75,7 @@ def main(reference_search_results_file_path: str, opponent_search_results_file_p
 
         count += 1
 
-    final_result = ["Averages", total_overlap / count, total_overlap_percent / count, total_rho / count]
+    final_result = ["Averages", total_overlap / count, total_overlap_percent / count, total_rank_correlation / count]
 
     # calculate average of overlap, overlap percent and rho values
     statistics.append(final_result)
