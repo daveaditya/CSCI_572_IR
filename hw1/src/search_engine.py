@@ -57,7 +57,10 @@ class SearchEngine:
             new_results = SearchEngine.__scrape_search_result(soup, result_selector_attrs, result_limit)
             results.update(new_results)
 
-            can_search_further = can_search_further_func(soup, result_limit)
+            if can_search_further_func:
+                can_search_further = can_search_further_func(soup, result_limit)
+            else:
+                can_search_further = False
 
             logger.info(f"No of results collected: {len(results)}")
             if len(results) < result_limit and can_search_further:

@@ -28,7 +28,7 @@ TOTAL_N_OF_QUERIES = 100
 ################################################################################################
 ### Support Functions
 ################################################################################################
-def can_search_further_func(soup, result_limit: int):
+def can_search_further(soup, result_limit: int):
     prog = re.compile(r"\d+")
 
     # check if result_limit number of results can be obtained
@@ -92,7 +92,7 @@ def main(
                 SEARCH_ENGINE_URL,
                 query,
                 SEARCH_RESULT_SELECTOR,
-                can_search_further_func=can_search_further_func,
+                can_search_further_func=can_search_further,
                 result_limit=result_limit,
                 should_sleep=True,
             )
