@@ -4,6 +4,7 @@ from math import pow
 from os.path import exists
 from typing import List, Tuple
 
+from urllib.parse import unquote_plus
 
 logger = logging.getLogger()
 
@@ -92,6 +93,7 @@ def url_sanitizer(urls: List[str]) -> List[str]:
     sanitized_urls = list()
 
     for url in urls:  # loop over all overs and sanitize them
+        url = unquote_plus(url)
         url = url.replace("www.", "")  # remove www.
         url = url.replace("https://", "http://")  # convert https to http
         url = url.strip("/")  # remove trailing /

@@ -59,9 +59,9 @@ def main(reference_search_results_file_path: str, opponent_search_results_file_p
         overlap, rho = spearmans_rho(diff)  # calculate overlap, and spearmans rank coefficient
         overlap_percent = (overlap / len(sanitized_reference_results)) * 100  # calculate overlap percentage
 
-        # TODO: Verify this.
+        # WARN: NO NEED to normalize
         # if the overlap is not full, need to multiple rho with overlap percentage
-        rank_correlation = (overlap_percent / 100) * rho
+        rank_correlation = rho # (overlap_percent / 100) * rho
 
         total_overlap += overlap  # maintain sum of overlaps from
         total_overlap_percent += overlap_percent  # maintain sum of overlap percentage
