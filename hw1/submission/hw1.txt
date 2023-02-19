@@ -6,6 +6,6 @@ Overall ask.com performs worst than the Google search engine. The overlap is onl
 
 Note to the Instructors:
 
-1. Ask.com returns results of its affiliates websites like reference.com and has tracking parameters like ?utm_content=... in the results. Those URLs are cleaned and the final result is stored in the hw1.json. The original results can be found in hw1_org.json.
+1. Ask.com returns results of its affiliates websites like reference.com and has tracking parameters like ?utm_content=... in the results. Those URLs are cleaned and the final result is stored in the hw1.json. The cleaned results i.e. without utm_content parameters can be found in hw1_cleaned.json.
 
 2. Python scripts can be found in the src directory.
