@@ -1,0 +1,11 @@
+I was assigned the Search Engine ask.com. After scrapping the results for the query set 3, the following statistics were calculated: 
+
+Average overlap is 2.27 and overlap percentage is 22.7 with a rho of -10.456285714285716.
+
+Overall ask.com performs worst than the Google search engine. The overlap is only 22.7%, meaning that Ask.com is having a very different approach to ranking pages than Google and same URLs are not given as much importance as Google. The average spearman correlation is negative with a value of -10.456285714285716 meaning that the ranks are negatively correlated.
+
+Note to the Instructors:
+
+1. Ask.com returns results of its affiliates websites like reference.com and has tracking parameters like ?utm_content=... in the results. Those URLs are cleaned and the final result is stored in the hw1.json. The cleaned results i.e. without utm_content parameters can be found in hw1_cleaned.json.
+
+2. Python scripts can be found in the src directory.
