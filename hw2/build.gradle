@@ -23,6 +23,9 @@ dependencies {
 
     // https://mvnrepository.com/artifact/com.sleepycat/je
     implementation group: 'com.sleepycat', name: 'je', version: '18.3.12'
+
+    // https://mvnrepository.com/artifact/com.beust/jcommander
+    implementation group: 'com.beust', name: 'jcommander', version: '1.82'
 }
 
 test {

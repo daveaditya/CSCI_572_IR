@@ -1,5 +1,7 @@
 package edu.usc.csci572;
 
+import com.beust.jcommander.JCommander;
+import com.beust.jcommander.Parameter;
 import edu.uci.ics.crawler4j.crawler.CrawlConfig;
 import edu.uci.ics.crawler4j.crawler.CrawlController;
 import edu.uci.ics.crawler4j.crawler.WebCrawler;
@@ -8,8 +10,28 @@ import edu.uci.ics.crawler4j.robotstxt.RobotstxtConfig;
 import edu.uci.ics.crawler4j.robotstxt.RobotstxtServer;
 
 public class CrawlerMain {
+
+    @Parameter(names = {"--max-pages", "-p"})
+    private int maxPages;
+
+    @Parameter(names = {"--max-depth", "-d"})
+    private int maxDepth;
+
     public static void main(String[] args) throws Exception {
-        String crawlStorageFolder = "./data/crawl/root";
+        CrawlerMain crawlerMain = new CrawlerMain();
+
+        JCommander.newBuilder()
+                .addObject(crawlerMain)
+                .build()
+                .parse(args);
+        crawlerMain.run();
+    }
+
+    public void run() {
+
+        System.out.printf("%d %d", maxPages, maxDepth);
+
+       /* String crawlStorageFolder = "./data/crawl/root";
         int numberOfCrawlers = 7;
 
         CrawlConfig config = new CrawlConfig();
@@ -33,7 +55,7 @@ public class CrawlerMain {
 
         // Start the crawl. This is a blocking operation, meaning that your code
         // will reach the line after this only when crawling is finished.
-        controller.start(factory, numberOfCrawlers);
+        controller.start(factory, numberOfCrawlers);*/
     }
 
 }
