@@ -14,6 +14,15 @@ repositories {
 dependencies {
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.1'
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.1'
+
+    // https://mvnrepository.com/artifact/edu.uci.ics/crawler4j
+    implementation group: 'edu.uci.ics', name: 'crawler4j', version: '4.4.0'
+
+    // https://mvnrepository.com/artifact/org.jsoup/jsoup
+    implementation group: 'org.jsoup', name: 'jsoup', version: '1.15.4'
+
+    // https://mvnrepository.com/artifact/com.sleepycat/je
+    implementation group: 'com.sleepycat', name: 'je', version: '18.3.12'
 }
 
 test {
