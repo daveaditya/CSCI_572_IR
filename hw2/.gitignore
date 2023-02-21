@@ -22,5 +22,4 @@ out/
 *.iws
 
 .DS_Store
-/data/
 /results/
