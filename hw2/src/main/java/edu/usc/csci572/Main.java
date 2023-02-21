@@ -10,6 +10,10 @@ import edu.uci.ics.crawler4j.robotstxt.RobotstxtServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.net.MalformedURLException;
+import java.net.URISyntaxException;
+import java.net.URL;
+
 public class Main {
     private static final Logger logger = LoggerFactory.getLogger(Main.class);
 
@@ -32,7 +36,7 @@ public class Main {
     @Parameter(names = {"--output-dir", "-od"}, description = "Directory to store the statistics in.")
     private String outputDirectory = "submission/";
 
-    public static void main(String[] args) throws Exception {
+    public static void main(String[] args) {
         Main main = new Main();
 
         JCommander.newBuilder()
@@ -42,52 +46,70 @@ public class Main {
         main.run();
     }
 
-    public void run() throws Exception {
-        logger.debug("Seed URL: {}", seedUrl);
-        logger.debug("Max Pages: {}", maxPages);
-        logger.debug("Max Depth: {}", maxDepth);
-        logger.debug("Number of Crawlers: {}", numberOfCrawlers);
-        logger.debug("Politeness Delay: {} ms", politenessDelay);
+    public void run() {
+        try {
+            logger.debug("Seed URL: {}", seedUrl);
+            logger.debug("Max Pages: {}", maxPages);
+            logger.debug("Max Depth: {}", maxDepth);
+            logger.debug("Number of Crawlers: {}", numberOfCrawlers);
+            logger.debug("Politeness Delay: {} ms", politenessDelay);
 
-        // TODO: validate seed URL
+            // Exit if the URL is not valid
+            if(!isValidURL(seedUrl)) {
+                logger.error("Invalid URL: {}", seedUrl);
+                System.exit(1);
+            }
 
-        String crawlStorageFolder = "results";
-        int numberOfCrawlers = this.numberOfCrawlers;
+            String crawlStorageFolder = "results";
+            int numberOfCrawlers = this.numberOfCrawlers;
 
-        CrawlConfig config = new CrawlConfig();
-        config.setCrawlStorageFolder(crawlStorageFolder);
-        config.setMaxPagesToFetch(maxPages);
-        config.setPolitenessDelay(politenessDelay);
-        config.setMaxDepthOfCrawling(maxDepth);
+            CrawlConfig config = new CrawlConfig();
+            config.setCrawlStorageFolder(crawlStorageFolder);
+            config.setMaxPagesToFetch(maxPages);
+            config.setPolitenessDelay(politenessDelay);
+            config.setMaxDepthOfCrawling(maxDepth);
 
-        // Instantiate the controller for this crawl.
-        PageFetcher pageFetcher = new PageFetcher(config);
-        RobotstxtConfig robotstxtConfig = new RobotstxtConfig();
-        RobotstxtServer robotstxtServer = new RobotstxtServer(robotstxtConfig, pageFetcher);
-        CrawlController controller = new CrawlController(config, pageFetcher, robotstxtServer);
+            // Instantiate the controller for this crawl.
+            PageFetcher pageFetcher = new PageFetcher(config);
+            RobotstxtConfig robotstxtConfig = new RobotstxtConfig();
+            RobotstxtServer robotstxtServer = new RobotstxtServer(robotstxtConfig, pageFetcher);
+            CrawlController controller = new CrawlController(config, pageFetcher, robotstxtServer);
 
-        // For each crawl, you need to add some seed urls. These are the first
-        // URLs that are fetched and then the crawler starts following links
-        // which are found in these pages
-        controller.addSeed(seedUrl);
+            // For each crawl, you need to add some seed urls. These are the first
+            // URLs that are fetched and then the crawler starts following links
+            // which are found in these pages
+            controller.addSeed(seedUrl);
 
-        // The factory which creates instances of crawlers.
-        CrawlStats crawlStats = CrawlStats.getInstance();
-        CrawlController.WebCrawlerFactory<MyCrawler> factory = () -> new MyCrawler(seedUrl, crawlStats);
+            // The factory which creates instances of crawlers.
+            CrawlStats crawlStats = CrawlStats.getInstance();
+            CrawlController.WebCrawlerFactory<MyCrawler> factory = () -> new MyCrawler(seedUrl, crawlStats);
 
-        // Start the crawl. This is a blocking operation, meaning that your code
-        // will reach the line after this only when crawling is finished.
-        controller.start(factory, numberOfCrawlers);
+            // Start the crawl. This is a blocking operation, meaning that your code
+            // will reach the line after this only when crawling is finished.
+            controller.start(factory, numberOfCrawlers);
 
-        // NOTE: No need to aggregate thread results as CrawlStats is Singleton and thread-safe
+            // NOTE: No need to aggregate thread results as CrawlStats is Singleton and thread-safe
 
-        // Get domain name
-        String domain = seedUrl.replaceAll("http(s)?://|www\\.|/.*", "").toLowerCase();
+            // Get domain name
+            String domain = seedUrl.replaceAll("http(s)?://|www\\.|/.*", "").toLowerCase();
 
-        // Store Stats
-        Utils.writeStats(outputDirectory, domain, crawlStats);
+            // Store Stats
+            Utils.writeStats(outputDirectory, domain, crawlStats);
 
-        logger.debug("Done.");
+            logger.debug("Done.");
+        } catch (Exception e) {
+            logger.error(e.getMessage());
+        }
+    }
+
+    private boolean isValidURL(String url) {
+        try {
+            new URL(url).toURI();
+            return true;
+        } catch (MalformedURLException | URISyntaxException e) {
+            logger.error(e.getMessage());
+            return false;
+        }
     }
 
 }
