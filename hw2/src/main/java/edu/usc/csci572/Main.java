@@ -13,12 +13,13 @@ import org.slf4j.LoggerFactory;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.util.List;
 
 public class Main {
     private static final Logger logger = LoggerFactory.getLogger(Main.class);
 
     @Parameter(names = {"--seed-url", "-u"}, description = "URL of the website to crawl.")
-    private String seedUrl = "https://www.usatoday.com/";
+    private String seedUrl = "https://www.usatoday.com";
 
     @Parameter(names = {"--max-pages", "-mp"}, description = "The maximum number of pages to crawl.")
     private int maxPages = 20000;

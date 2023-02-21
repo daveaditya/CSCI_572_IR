@@ -27,9 +27,9 @@ public class MyCrawler extends WebCrawler {
 
     private final String domain;
 
-    private int batchSize = 50;
+    private final int batchSize;
 
-    private final static Pattern FILTERS = Pattern.compile(".*(\\.(html|doc|docx|pdf|bmp|gif|jpeg|jpg|png|svg))$");
+    private final static Pattern EXCLUSIONS = Pattern.compile(".*(\\.(css|js|xml|mp3|mp4|zip|gz))$");
 
     public MyCrawler(String orgWebsite, CrawlStats crawlStats, String outputDirectory, String domain, int batchSize) {
         this.orgWebsite = orgWebsite;
@@ -61,7 +61,13 @@ public class MyCrawler extends WebCrawler {
                 residesInside ? Url.ResidesWithinWebsite.OK : Url.ResidesWithinWebsite.N_OK
         ));
 
-        return FILTERS.matcher(href).matches() && residesInside;
+        boolean shouldVisit = !EXCLUSIONS.matcher(href).matches() && residesInside;
+
+        if(!shouldVisit) {
+            logger.debug("NOT CRAWLING: {}", href);
+        }
+
+        return shouldVisit;
     }
 
     /**
@@ -113,8 +119,10 @@ public class MyCrawler extends WebCrawler {
         }
 
         // Save data based on after every batchSize number of fetches
-        if (crawlStats.getNumOfFetches() % batchSize == 0) {
-            Utils.writeStats(outputDirectory, domain, crawlStats);
+        synchronized (this) {
+            if (crawlStats.getVisits().size() % batchSize == 0) {
+                Utils.writeStats(outputDirectory, domain, crawlStats);
+            }
         }
     }
 
