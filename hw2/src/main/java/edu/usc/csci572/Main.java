@@ -59,8 +59,11 @@ public class Main {
             logger.debug("Output Directory: {}", outputDirectory);
             logger.debug("Batch Size: {}", batchSize);
 
+            // Get domain name
+            String domain = seedUrl.replaceAll("http(s)?://|www\\.|/.*", "").toLowerCase();
+
             // Exit if the URL is not valid
-            if(!isValidURL(seedUrl)) {
+            if (!isValidURL(seedUrl)) {
                 logger.error("Invalid URL: {}", seedUrl);
                 System.exit(1);
             }
@@ -87,16 +90,13 @@ public class Main {
 
             // The factory which creates instances of crawlers.
             CrawlStats crawlStats = CrawlStats.getInstance();
-            CrawlController.WebCrawlerFactory<MyCrawler> factory = () -> new MyCrawler(seedUrl, crawlStats, batchSize);
+            CrawlController.WebCrawlerFactory<MyCrawler> factory = () -> new MyCrawler(seedUrl, crawlStats, outputDirectory, domain, batchSize);
 
             // Start the crawl. This is a blocking operation, meaning that your code
             // will reach the line after this only when crawling is finished.
             controller.start(factory, numberOfCrawlers);
 
             // NOTE: No need to aggregate thread results as CrawlStats is Singleton and thread-safe
-
-            // Get domain name
-            String domain = seedUrl.replaceAll("http(s)?://|www\\.|/.*", "").toLowerCase();
 
             // Store Stats
             Utils.writeStats(outputDirectory, domain, crawlStats);

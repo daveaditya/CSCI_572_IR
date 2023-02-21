@@ -37,7 +37,7 @@ public class CrawlStats {
     }
 
     public static synchronized CrawlStats getInstance() {
-        if(_crawlStats == null) {
+        if (_crawlStats == null) {
             _crawlStats = new CrawlStats();
         }
         return _crawlStats;
@@ -104,7 +104,7 @@ public class CrawlStats {
     }
 
     public synchronized void incStatusCodeCounts(String statusCode) {
-        if(this.statusCodeCounts.containsKey(statusCode)) {
+        if (this.statusCodeCounts.containsKey(statusCode)) {
             this.statusCodeCounts.replace(statusCode, this.statusCodeCounts.get(statusCode) + 1);
         } else {
             this.statusCodeCounts.put(statusCode, 1);
@@ -119,7 +119,7 @@ public class CrawlStats {
         int KB = 1024;
         int MB = 1024 * KB;
 
-        if(size < KB) {
+        if (size < KB) {
             this.fileSizeByRangeCounts[0]++;
         } else if (size < 10 * KB) {
             this.fileSizeByRangeCounts[1]++;
@@ -137,7 +137,7 @@ public class CrawlStats {
     }
 
     public synchronized void addContentTypeCount(String contentType) {
-        if(this.contentTypeCounts.containsKey(contentType)) {
+        if (this.contentTypeCounts.containsKey(contentType)) {
             this.contentTypeCounts.replace(contentType, this.contentTypeCounts.get(contentType));
         } else {
             this.contentTypeCounts.putIfAbsent(contentType, 1);

@@ -19,55 +19,48 @@ public class Utils {
 
     private static final Logger logger = LoggerFactory.getLogger(Utils.class);
 
-    public static <T> void writeCsv(Path path, List<T> data) {
-        CustomMappingStrategy<T> strategyNewFile = new CustomMappingStrategy<>(true);
-        CustomMappingStrategy<T> strategyAppendFile = new CustomMappingStrategy<>(false);
+    public static <T> void writeCsv(Path path, List<T> data) throws Exception {
+        CustomMappingStrategy<T> strategy = new CustomMappingStrategy<>();
 
         // WARN:
         //noinspection unchecked
-        strategyNewFile.setType((Class<? extends T>) data.get(0).getClass());
-        //noinspection unchecked
-        strategyAppendFile.setType((Class<? extends T>) data.get(0).getClass());
+        strategy.setType((Class<? extends T>) data.get(0).getClass());
 
-        boolean isAppend = Files.exists(path);
-
-        try (BufferedWriter writer = Files.newBufferedWriter(path, StandardOpenOption.WRITE)) {
+        try (BufferedWriter writer = Files.newBufferedWriter(path)) {
             StatefulBeanToCsv<T> sbc = new StatefulBeanToCsvBuilder<T>(writer)
                     .withSeparator(CSVWriter.DEFAULT_SEPARATOR)
-                    .withMappingStrategy(isAppend ? strategyAppendFile : strategyNewFile)
+                    .withMappingStrategy(strategy)
                     .build();
 
             sbc.write(data);
-        } catch (IOException | CsvDataTypeMismatchException | CsvRequiredFieldEmptyException e) {
-            logger.error(e.getMessage());
         }
     }
 
     public static synchronized void writeStats(String outputDirectory, String domain, CrawlStats crawlStats) {
         // Create output directory if not present
         File dir = new File(outputDirectory);
-        if(!dir.exists()) {
+        if (!dir.exists()) {
             dir.mkdirs();
         }
 
         String identifier = domain.split("\\.")[0];
 
-        // Write CSV files
-        // Store URLs
-        Path urlsCsvFilePath = Paths.get(String.format("%s/urls_%s.csv", outputDirectory, identifier));
-        Utils.writeCsv(urlsCsvFilePath, crawlStats.getUrls());
-
-        // Store Fetches
-        Path fetchCsvFilePath = Paths.get(String.format("%s/fetch_%s.csv", outputDirectory, identifier));
-        Utils.writeCsv(fetchCsvFilePath, crawlStats.getFetches());
-
-        // Store Visits
-        Path visitsCsvFilePath = Paths.get(String.format("%s/visit_%s.csv", outputDirectory, identifier));
-        Utils.writeCsv(visitsCsvFilePath, crawlStats.getVisits());
-
         // Write Report
         Path reportFilePath = Paths.get(String.format("%s/CrawlReport_%s.txt", outputDirectory, identifier));
         try (BufferedWriter writer = Files.newBufferedWriter(reportFilePath)) {
+            // Write CSV files
+            // Store URLs
+            Path urlsCsvFilePath = Paths.get(String.format("%s/urls_%s.csv", outputDirectory, identifier));
+            Utils.writeCsv(urlsCsvFilePath, crawlStats.getUrls());
+
+            // Store Fetches
+            Path fetchCsvFilePath = Paths.get(String.format("%s/fetch_%s.csv", outputDirectory, identifier));
+            Utils.writeCsv(fetchCsvFilePath, crawlStats.getFetches());
+
+            // Store Visits
+            Path visitsCsvFilePath = Paths.get(String.format("%s/visit_%s.csv", outputDirectory, identifier));
+            Utils.writeCsv(visitsCsvFilePath, crawlStats.getVisits());
+
             StringBuilder report = new StringBuilder();
 
             report.append(String.format("""
@@ -101,7 +94,7 @@ public class Utils {
                     """);
 
             // Loop and get all Status Codes + Counts as String
-            for(Map.Entry<String, Integer> pair: crawlStats.getStatusCodeCounts().entrySet()) {
+            for (Map.Entry<String, Integer> pair : crawlStats.getStatusCodeCounts().entrySet()) {
                 report.append(String.format("%s: %d\n", pair.getKey(), pair.getValue()));
             }
 
@@ -121,12 +114,12 @@ public class Utils {
                     """);
 
             // Loop and get all Content Types + Count as String
-            for(Map.Entry<String, Integer> pair: crawlStats.getContentTypeCounts().entrySet()) {
+            for (Map.Entry<String, Integer> pair : crawlStats.getContentTypeCounts().entrySet()) {
                 report.append(String.format("%s: %d\n", pair.getKey(), pair.getValue()));
             }
 
             writer.write(report.toString());
-        } catch(Exception e) {
+        } catch (Exception e) {
             logger.error(e.getMessage());
         }
     }

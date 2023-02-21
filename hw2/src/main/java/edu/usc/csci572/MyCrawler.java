@@ -82,7 +82,7 @@ public class MyCrawler extends WebCrawler {
         this.crawlStats.incNumOfFetches(); // increment number of fetches
         this.crawlStats.incTotalUrls(); // increment total visited urls
 
-        if(statusCode == 200) {
+        if (statusCode == 200) {
             this.crawlStats.incNumOfSuccessfulFetches();             // Increment Successful Visit Count
 
             Visit visit = new Visit(); // create a new Visit
