@@ -55,7 +55,7 @@ public class Utils {
         Path visitsCsvFilePath = Paths.get(String.format("%s/visit_%s.csv", outputDirectory, identifier));
         Utils.writeCsv(visitsCsvFilePath, crawlStats.getVisits());
 
-        // TODO: Write Report
+        // Write Report
         Path reportFilePath = Paths.get(String.format("%s/CrawlReport_%s.txt", outputDirectory, identifier));
         try (BufferedWriter writer = Files.newBufferedWriter(reportFilePath)) {
             StringBuilder report = new StringBuilder();
@@ -90,7 +90,7 @@ public class Utils {
                     =============
                     """);
 
-            // TODO: Loop and get all Status Codes + Counts as String
+            // Loop and get all Status Codes + Counts as String
             for(Map.Entry<String, Integer> pair: crawlStats.getStatusCodeCounts().entrySet()) {
                 report.append(String.format("%s: %d\n", pair.getKey(), pair.getValue()));
             }
@@ -110,7 +110,7 @@ public class Utils {
                     ==============
                     """);
 
-            // TODO: Loop and get all Content Types + Count as String
+            // Loop and get all Content Types + Count as String
             for(Map.Entry<String, Integer> pair: crawlStats.getContentTypeCounts().entrySet()) {
                 report.append(String.format("%s: %d\n", pair.getKey(), pair.getValue()));
             }
