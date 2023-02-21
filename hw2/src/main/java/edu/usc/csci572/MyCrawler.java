@@ -21,13 +21,22 @@ public class MyCrawler extends WebCrawler {
 
     private final String orgWebsite;
 
-    private final CrawlStats stats;
+    private final CrawlStats crawlStats;
+
+    private final String outputDirectory;
+
+    private final String domain;
+
+    private int batchSize = 50;
 
     private final static Pattern FILTERS = Pattern.compile(".*(\\.(html|doc|docx|pdf|bmp|gif|jpeg|jpg|png|svg))$");
 
-    public MyCrawler(String orgWebsite, CrawlStats stats) {
+    public MyCrawler(String orgWebsite, CrawlStats crawlStats, String outputDirectory, String domain, int batchSize) {
         this.orgWebsite = orgWebsite;
-        this.stats = stats;
+        this.crawlStats = crawlStats;
+        this.outputDirectory = outputDirectory;
+        this.domain = domain;
+        this.batchSize = batchSize;
     }
 
     /**
@@ -46,7 +55,7 @@ public class MyCrawler extends WebCrawler {
         boolean residesInside = href.startsWith(this.orgWebsite);
 
         // Store all the URLs checked or visited and also mention whether it is within the website or not
-        this.stats.addUrl(new Url(
+        this.crawlStats.addUrl(new Url(
                 url.getDocid(),
                 url.getURL(),
                 residesInside ? Url.ResidesWithinWebsite.OK : Url.ResidesWithinWebsite.N_OK
@@ -66,15 +75,15 @@ public class MyCrawler extends WebCrawler {
         int statusCode = page.getStatusCode();
         String statusMessage = EnglishReasonPhraseCatalog.INSTANCE.getReason(statusCode, Locale.ENGLISH);
 
-        this.stats.incStatusCodeCounts(String.format("%d %s", statusCode, statusMessage.toUpperCase())); // Update status code count stat
+        this.crawlStats.incStatusCodeCounts(String.format("%d %s", statusCode, statusMessage.toUpperCase())); // Update status code count stat
 
-        this.stats.addFetch(new Fetch(docid, url, statusCode)); // record new fetch
+        this.crawlStats.addFetch(new Fetch(docid, url, statusCode)); // record new fetch
 
-        this.stats.incNumOfFetches(); // increment number of fetches
-        this.stats.incTotalUrls(); // increment total visited urls
+        this.crawlStats.incNumOfFetches(); // increment number of fetches
+        this.crawlStats.incTotalUrls(); // increment total visited urls
 
         if(statusCode == 200) {
-            this.stats.incNumOfSuccessfulFetches();             // Increment Successful Visit Count
+            this.crawlStats.incNumOfSuccessfulFetches();             // Increment Successful Visit Count
 
             Visit visit = new Visit(); // create a new Visit
             visit.setDocid(docid);
@@ -90,25 +99,28 @@ public class MyCrawler extends WebCrawler {
             String contentType = page.getContentType().split(";")[0];
             visit.setContentType(contentType);
 
-            this.stats.addContentTypeCount(contentType); // count Content-Type occurrences
+            this.crawlStats.addContentTypeCount(contentType); // count Content-Type occurrences
 
             // Add content length for current fetch
             int size = page.getContentData().length;
             visit.setSize(size);
 
-            this.stats.addFileSizeCount(size); // count Size range
+            this.crawlStats.addFileSizeCount(size); // count Size range
 
-            this.stats.addVisit(visit); // add Visit to the stats
+            this.crawlStats.addVisit(visit); // add Visit to the stats
         } else {
-            this.stats.incNumOfFailedFetches(); // Increment failed/aborted visit counts
+            this.crawlStats.incNumOfFailedFetches(); // Increment failed/aborted visit counts
         }
 
-        // TODO: Save data based on frequency like after every 50 pages
+        // Save data based on after every batchSize number of fetches
+        if (crawlStats.getNumOfFetches() % batchSize == 0) {
+            Utils.writeStats(outputDirectory, domain, crawlStats);
+        }
     }
 
     @Override
     public Object getMyLocalData() {
-        return this.stats;
+        return this.crawlStats;
     }
 
 }

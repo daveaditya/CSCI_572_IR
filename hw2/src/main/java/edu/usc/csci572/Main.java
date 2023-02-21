@@ -36,6 +36,9 @@ public class Main {
     @Parameter(names = {"--output-dir", "-od"}, description = "Directory to store the statistics in.")
     private String outputDirectory = "submission/";
 
+    @Parameter(names = {"--batch-size", "-bs"}, description = "Save after every x fetches.")
+    private int batchSize = 50;
+
     public static void main(String[] args) {
         Main main = new Main();
 
@@ -53,6 +56,8 @@ public class Main {
             logger.debug("Max Depth: {}", maxDepth);
             logger.debug("Number of Crawlers: {}", numberOfCrawlers);
             logger.debug("Politeness Delay: {} ms", politenessDelay);
+            logger.debug("Output Directory: {}", outputDirectory);
+            logger.debug("Batch Size: {}", batchSize);
 
             // Exit if the URL is not valid
             if(!isValidURL(seedUrl)) {
@@ -82,7 +87,7 @@ public class Main {
 
             // The factory which creates instances of crawlers.
             CrawlStats crawlStats = CrawlStats.getInstance();
-            CrawlController.WebCrawlerFactory<MyCrawler> factory = () -> new MyCrawler(seedUrl, crawlStats);
+            CrawlController.WebCrawlerFactory<MyCrawler> factory = () -> new MyCrawler(seedUrl, crawlStats, batchSize);
 
             // Start the crawl. This is a blocking operation, meaning that your code
             // will reach the line after this only when crawling is finished.

@@ -2,6 +2,8 @@ package edu.usc.csci572;
 
 import com.opencsv.CSVWriter;
 import com.opencsv.bean.*;
+import com.opencsv.exceptions.CsvDataTypeMismatchException;
+import com.opencsv.exceptions.CsvRequiredFieldEmptyException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -9,6 +11,7 @@ import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.util.List;
 import java.util.Map;
 
@@ -16,24 +19,31 @@ public class Utils {
 
     private static final Logger logger = LoggerFactory.getLogger(Utils.class);
 
-    public static <T> void writeCsv(Path path, List<T> data) throws Exception {
-        CustomMappingStrategy<T> strategy = new CustomMappingStrategy<>();
+    public static <T> void writeCsv(Path path, List<T> data) {
+        CustomMappingStrategy<T> strategyNewFile = new CustomMappingStrategy<>(true);
+        CustomMappingStrategy<T> strategyAppendFile = new CustomMappingStrategy<>(false);
 
         // WARN:
         //noinspection unchecked
-        strategy.setType((Class<? extends T>) data.get(0).getClass());
+        strategyNewFile.setType((Class<? extends T>) data.get(0).getClass());
+        //noinspection unchecked
+        strategyAppendFile.setType((Class<? extends T>) data.get(0).getClass());
 
-        try (BufferedWriter writer = Files.newBufferedWriter(path)) {
+        boolean isAppend = Files.exists(path);
+
+        try (BufferedWriter writer = Files.newBufferedWriter(path, StandardOpenOption.WRITE)) {
             StatefulBeanToCsv<T> sbc = new StatefulBeanToCsvBuilder<T>(writer)
                     .withSeparator(CSVWriter.DEFAULT_SEPARATOR)
-                    .withMappingStrategy(strategy)
+                    .withMappingStrategy(isAppend ? strategyAppendFile : strategyNewFile)
                     .build();
 
             sbc.write(data);
+        } catch (IOException | CsvDataTypeMismatchException | CsvRequiredFieldEmptyException e) {
+            logger.error(e.getMessage());
         }
     }
 
-    public static void writeStats(String outputDirectory, String domain, CrawlStats crawlStats) throws Exception {
+    public static synchronized void writeStats(String outputDirectory, String domain, CrawlStats crawlStats) {
         // Create output directory if not present
         File dir = new File(outputDirectory);
         if(!dir.exists()) {
@@ -116,8 +126,8 @@ public class Utils {
             }
 
             writer.write(report.toString());
-        } catch(Exception exc) {
-            logger.error(exc.getMessage());
+        } catch(Exception e) {
+            logger.error(e.getMessage());
         }
     }
 
