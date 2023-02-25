@@ -84,7 +84,7 @@ public class Utils {
                     # unique URLs extracted: %d
                     # unique URLs within News Site: %d
                     # unique URLs outside News Site: %d
-                    """, 1, 1, 1));
+                    """, crawlStats.getTotalUniqueCount(), crawlStats.getUniqueWithinCount(), crawlStats.getUniqueOutsideCount()));
 
             int[] fileSizeCounts = crawlStats.getFileSizeByRangeCounts();
             report.append("""

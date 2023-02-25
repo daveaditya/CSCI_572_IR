@@ -22,6 +22,12 @@ public class CrawlStats {
 
     private int totalUrls = 0;
 
+    private Set<String> uniqueUrls = new HashSet<>();
+
+    private Set<String> uniqueWithinUrls = new HashSet<>();
+
+    private Set<String> uniqueOutsideUrls = new HashSet<>();
+
     private final Map<String, Integer> statusCodeCounts = new HashMap<>();
 
     private final int[] fileSizeByRangeCounts = {0, 0, 0, 0, 0};
@@ -142,6 +148,28 @@ public class CrawlStats {
         } else {
             this.contentTypeCounts.putIfAbsent(contentType, 1);
         }
+    }
+
+    public synchronized void addUniqueUrl(String url, boolean residesInside) {
+        this.uniqueUrls.add(url);
+
+        if(residesInside) {
+            this.uniqueWithinUrls.add(url);
+        } else {
+            this.uniqueOutsideUrls.add(url);
+        }
+    }
+
+    public int getTotalUniqueCount() {
+        return this.uniqueUrls.size();
+    }
+
+    public int getUniqueWithinCount() {
+        return this.uniqueWithinUrls.size();
+    }
+
+    public int getUniqueOutsideCount() {
+        return this.uniqueOutsideUrls.size();
     }
 
     @Override
