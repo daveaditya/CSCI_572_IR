@@ -2,8 +2,6 @@ package edu.usc.csci572;
 
 import com.opencsv.CSVWriter;
 import com.opencsv.bean.*;
-import com.opencsv.exceptions.CsvDataTypeMismatchException;
-import com.opencsv.exceptions.CsvRequiredFieldEmptyException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -11,7 +9,6 @@ import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.StandardOpenOption;
 import java.util.List;
 import java.util.Map;
 
@@ -40,7 +37,9 @@ public class Utils {
         // Create output directory if not present
         File dir = new File(outputDirectory);
         if (!dir.exists()) {
-            dir.mkdirs();
+            if (!dir.mkdirs()) {
+                throw new RuntimeException(String.format("Cannot create output path: %s", outputDirectory));
+            }
         }
 
         String identifier = domain.split("\\.")[0];
