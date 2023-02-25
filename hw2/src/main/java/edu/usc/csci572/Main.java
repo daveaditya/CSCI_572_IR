@@ -29,8 +29,7 @@ public class Main {
     @Parameter(names = {"--num-crawlers", "-nt"}, description = "Number of crawlers/thread to create.")
     private int numberOfCrawlers = 8;
 
-    @Parameter(names = {"--politeness", "-p"}, description = "The politeness delay specifies to number of milliseconds"
-            + "to wait between requests.")
+    @Parameter(names = {"--politeness", "-p"}, description = "The politeness delay specifies to number of milliseconds to wait between requests.")
     private int politenessDelay = 2000;
 
     @Parameter(names = {"--output-dir", "-od"}, description = "Directory to store the statistics in.")
@@ -39,14 +38,26 @@ public class Main {
     @Parameter(names = {"--batch-size", "-bs"}, description = "Save after every x fetches.")
     private int batchSize = 50;
 
+    @Parameter(names = {"--help", "-h"}, help = true, description = "Prints the usage of this program.")
+    private boolean help = false;
+
     public static void main(String[] args) {
         Main main = new Main();
 
-        JCommander.newBuilder()
+        JCommander jct = JCommander.newBuilder()
                 .addObject(main)
-                .build()
-                .parse(args);
+                .build();
+        jct.setProgramName("hw2-1.0.jar");
+        jct.parse(args);
+        if(main.isHelp()) {
+            jct.usage();
+            System.exit(0);
+        }
         main.run();
+    }
+
+    public boolean isHelp() {
+        return help;
     }
 
     public void run() {
@@ -102,7 +113,7 @@ public class Main {
             // Store Stats
             Utils.writeStats(outputDirectory, domain, crawlStats);
 
-            logger.debug("Done.");
+            logger.info("Done.");
         } catch (Exception e) {
             logger.error(e.getMessage());
         }
