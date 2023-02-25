@@ -138,7 +138,7 @@ public class CrawlStats {
 
     public synchronized void addContentTypeCount(String contentType) {
         if (this.contentTypeCounts.containsKey(contentType)) {
-            this.contentTypeCounts.replace(contentType, this.contentTypeCounts.get(contentType));
+            this.contentTypeCounts.replace(contentType, this.contentTypeCounts.get(contentType) + 1);
         } else {
             this.contentTypeCounts.putIfAbsent(contentType, 1);
         }
