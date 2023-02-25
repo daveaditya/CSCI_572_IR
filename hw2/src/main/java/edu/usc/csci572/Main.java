@@ -13,7 +13,6 @@ import org.slf4j.LoggerFactory;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.util.List;
 
 public class Main {
     private static final Logger logger = LoggerFactory.getLogger(Main.class);
@@ -77,6 +76,7 @@ public class Main {
             config.setMaxPagesToFetch(maxPages);
             config.setPolitenessDelay(politenessDelay);
             config.setMaxDepthOfCrawling(maxDepth);
+            config.setIncludeBinaryContentInCrawling(true);
 
             // Instantiate the controller for this crawl.
             PageFetcher pageFetcher = new PageFetcher(config);
