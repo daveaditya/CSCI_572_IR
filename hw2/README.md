@@ -66,7 +66,7 @@ for this exercise. Also, maximum depth should be set to 16 to ensure that we lim
 
 ### Deliverables
 
-Your primary task is to enhance the crawler so it collects information about:
+Your primary task is to enhance the crawler, so it collects information about:
 
 1. the URLs it attempts to fetch, a two column spreadsheet, column 1 containing the URL and
    column 2 containing the HTTP/HTTPS status code received; name the file fetch_NewsSite.csv (where the name “NewsSite”
@@ -76,14 +76,14 @@ Your primary task is to enhance the crawler so it collects information about:
    column 2 containing the size of the downloaded file (in Bytes, or you can choose your own preferred unit (
    bytes,kb,mb)), column 3 containing the # of outlinks found, and column 4 containing the resulting content-type; name
    the file visit_NewsSite.csv; clearly the number of rows will be less than the number of rows in fetch_NewsSite.csv
-3. all of the URLs (including repeats) that were discovered and processed in some way; a two column spreadsheet where
+3. all the URLs (including repeats) that were discovered and processed in some way; a two column spreadsheet where
    column 1 contains the encountered URL and column two an indicator of whether the URL a. resides in the website (OK),
    or b. points outside of the website (N_OK). (A file points out of the website if its URL does not start with the
    initial host/domain name, e.g. when crawling USA Today news website all inside URLs must start with
    .) Name the file urls_NewsSite.csv. This file will be much larger than fetch_*.csv and visit_*.csv.
-   For example for New York Times- the URL and the URL are both considered as residing in the same website whereas the
+   For example for New York Times-the URL and the URL are both considered as residing in the same website whereas the
    following URL is not considered to be in the same website, http://store.nytimes.com/
-   Note1: you should modify the crawler so it outputs the above data into three separate csv files; you will use them
+   Note1: you should modify the crawler, so it outputs the above data into three separate csv files; you will use them
    for processing later;
    Note2: all uses of NewsSite above should be replaced by the name given in the column labeled NewsSite Name in the
    table on page 1.
@@ -122,13 +122,13 @@ for a crawl of your designated news website:
 
 These statistics should be collated and submitted as a plain text file whose name is CrawlReport_NewsSite.txt, following
 the format given in Appendix A at the end of this document. Make sure you understand the crawler code and required
-output before you commence collating these statistics.
+to be output before you commence collating these statistics.
 For efficient crawling it is a good idea to have multiple crawling threads. You are required to use multiple threads in
 this exercise.
 
 crawler4j supports multi-threading and our examples show setting the number of crawlers to seven (see the line in the
 code int numberOfCrawlers = 7;). However, if you do a naive implementation the threads will trample on each other when
-outputting to your statistics collection files. Therefore you need to be a bit smarter about how to collect the
+outputting to your statistics collection files. Therefore, you need to be a bit smarter about how to collect the
 statistics, and crawler4j documentation has a good example of how to do this.
 
 ### Rubrics
@@ -151,13 +151,16 @@ Crawl Report
 8. Number of files in the content types should be less than or equal to the number of
    fetches succeeded.
    CSV files
-9. Inspect fetch.csv, visit.csv: all of the data in both files will be cross validated against the crawl reports.
+9. Inspect fetch.csv, visit.csv: all the data in both files will be cross validated against the crawl reports.
 10. Note: column headers need to be included
 
 ### Appendix A
 
 Use the following format to tabulate the statistics that you collated based on the crawler outputs.
-Note: The status codes and content types shown are only a sample. The status codes and content types that you encounter may vary, and should all be listed and reflected in your report. Do NOT lump everything else that is not in this sample under an “Other” heading. You may, however, exclude status codes and types for which you have a count of zero. Also, note the use of multiple threads. You are required to use multiple threads in this exercise.
+Note: The status codes and content types shown are only a sample. The status codes and content types that you encounter
+may vary, and should all be listed and reflected in your report. Do NOT lump everything else that is not in this sample
+under an “Other” heading. You may, however, exclude status codes and types for which you have a count of zero. Also,
+note the use of multiple threads. You are required to use multiple threads in this exercise.
 
 File: `CrawlReport_NewsSite.txt`
 
@@ -201,3 +204,11 @@ image/jpeg:
 image/png: 
 application/pdf:
 ```
+
+Homework Documents:
+
+1. [data/hw2.pdf](data/hw2.pdf) - contains the detailed description of the homework
+2. [data/rubrics.pdf](data/rubrics.pdf) - contains the grading rubrics for the homework
+3. [data/crawler4j_installation.pdf](data/crawler4j_installation.pdf) - contains the installation and setup instruction
+   for Crawler4J. Note that this project is in gradle and does not follow these instructions.
+4. [data/crawler4j_process.pdf](data/crawler4j_process.pdf) - contains the flow diagram for the homework
