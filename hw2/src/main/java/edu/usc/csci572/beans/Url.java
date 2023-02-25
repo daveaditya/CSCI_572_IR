@@ -14,7 +14,7 @@ public class Url {
     @CsvBindByPosition(position = 0)
     private final String url;
 
-    @CsvBindByName(column = "Resides in the Website")
+    @CsvBindByName(column = "URL Type")
     @CsvBindByPosition(position = 1)
     private final ResidesWithinWebsite withinWebsite;
 

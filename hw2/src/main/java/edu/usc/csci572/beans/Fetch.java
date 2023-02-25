@@ -13,7 +13,7 @@ public class Fetch {
     @CsvBindByPosition(position = 0)
     private final String url;
 
-    @CsvBindByName(column = "Status Code")
+    @CsvBindByName(column = "Status")
     @CsvBindByPosition(position = 1)
     private final int statusCode;
 

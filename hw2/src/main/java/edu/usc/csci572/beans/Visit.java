@@ -21,7 +21,7 @@ public class Visit {
     @CsvBindByPosition(position = 2)
     private int numOfOutlinks;
 
-    @CsvBindByName(column = "Content Type")
+    @CsvBindByName(column = "Content-Type")
     @CsvBindByPosition(position = 3)
     private String contentType;
 
