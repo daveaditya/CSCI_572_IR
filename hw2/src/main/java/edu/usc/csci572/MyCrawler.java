@@ -11,6 +11,8 @@ import org.apache.http.impl.EnglishReasonPhraseCatalog;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Locale;
 import java.util.Set;
 import java.util.regex.Pattern;
@@ -29,7 +31,10 @@ public class MyCrawler extends WebCrawler {
 
     private final int batchSize;
 
-    private final static Pattern EXCLUSIONS = Pattern.compile(".*(\\.(css|js|xml|mp3|mp4|zip|gz))$");
+    private final static Pattern EXCLUSIONS = Pattern.compile(".*(\\.(css|js|xml|mp3|mp4|zip|gz|json))$");
+
+    private final static Set<String> ALLOWED_CONTENT_TYPES = new HashSet<>(Arrays.asList("text/html", "application/pdf", "image/jpeg", "image/png", "image/bmp", "image/gif", "image/svg+xml", "image/tiff", "image/webp", "image/avif",
+            "application/msword"));
 
     public MyCrawler(String orgWebsite, CrawlStats crawlStats, String outputDirectory, String domain, int batchSize) {
         this.orgWebsite = orgWebsite;
@@ -51,20 +56,22 @@ public class MyCrawler extends WebCrawler {
      */
     @Override
     public boolean shouldVisit(Page referringPage, WebURL url) {
-        String href = url.getURL().toLowerCase();
-        boolean residesInside = href.startsWith(this.orgWebsite);
+        String urlSrc = url.getURL();
+        String href = urlSrc.toLowerCase();
+        boolean residesInside = href.matches("https?://(www.)?" + domain + "/?.*");
 
         // Store all the URLs checked or visited and also mention whether it is within the website or not
         this.crawlStats.addUrl(new Url(
                 url.getDocid(),
-                url.getURL(),
+                urlSrc,
                 residesInside ? Url.ResidesWithinWebsite.OK : Url.ResidesWithinWebsite.N_OK
         ));
+        this.crawlStats.addUniqueUrl(urlSrc, residesInside);
 
         boolean shouldVisit = !EXCLUSIONS.matcher(href).matches() && residesInside;
 
-        if(!shouldVisit) {
-            logger.debug("NOT CRAWLING: {}", href);
+        if (!shouldVisit) {
+            logger.info("NOT CRAWLING: {}, Doc id: {}", href, url.getDocid());
         }
 
         return shouldVisit;
@@ -88,8 +95,17 @@ public class MyCrawler extends WebCrawler {
         this.crawlStats.incNumOfFetches(); // increment number of fetches
         this.crawlStats.incTotalUrls(); // increment total visited urls
 
-        if (statusCode == 200) {
-            this.crawlStats.incNumOfSuccessfulFetches();             // Increment Successful Visit Count
+        // Add content type for current fetch; avoid charset=utf-8
+        String contentType = page.getContentType().split(";")[0];
+
+        logger.info("Docid: {}, Url: {}, Content-Type: {}", docid, url, contentType);
+        if(!ALLOWED_CONTENT_TYPES.contains(contentType)) {
+            logger.info("Content-Type: {}", contentType);
+            return;
+        }
+
+        if (statusCode >= 200 && statusCode < 300) {
+            this.crawlStats.incNumOfSuccessfulFetches(); // Increment Successful Visit Count
 
             Visit visit = new Visit(); // create a new Visit
             visit.setDocid(docid);
@@ -101,8 +117,6 @@ public class MyCrawler extends WebCrawler {
                 visit.setNumOfOutlinks(links.size()); // Store number of outlinks
             }
 
-            // Add content type for current fetch; avoid charset=utf-8
-            String contentType = page.getContentType().split(";")[0];
             visit.setContentType(contentType);
 
             this.crawlStats.addContentTypeCount(contentType); // count Content-Type occurrences
@@ -120,7 +134,7 @@ public class MyCrawler extends WebCrawler {
 
         // Save data based on after every batchSize number of fetches
         synchronized (this) {
-            if (crawlStats.getVisits().size() % batchSize == 0) {
+            if (crawlStats.getTotalUrls() % batchSize == 0) {
                 Utils.writeStats(outputDirectory, domain, crawlStats);
             }
         }
