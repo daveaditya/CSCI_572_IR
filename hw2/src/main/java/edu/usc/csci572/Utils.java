@@ -33,7 +33,7 @@ public class Utils {
         }
     }
 
-    public static synchronized void writeStats(String outputDirectory, String domain, CrawlStats crawlStats) {
+    public static synchronized void writeStats(String outputDirectory, String domain, CrawlStats crawlStats, String author, String id, int nThreads) {
         // Create output directory if not present
         File dir = new File(outputDirectory);
         if (!dir.exists()) {
@@ -67,7 +67,7 @@ public class Utils {
                     USC ID: %s
                     News site crawled: %s
                     Number of threads: %d
-                    """, "Aditya Ashok Dave", "xxxxxxxx", "usatoday.com", 8));
+                    """, author, id, domain, nThreads));
 
             report.append(String.format("""
                     \nFetch Statistics

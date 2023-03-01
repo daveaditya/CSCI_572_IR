@@ -17,6 +17,12 @@ import java.net.URL;
 public class Main {
     private static final Logger logger = LoggerFactory.getLogger(Main.class);
 
+    @Parameter(names = {"--author"}, description = "Author name for the generated report.")
+    private String author = "John Doe";
+
+    @Parameter(names = {"--id"}, description = "ID for the author in the generated report.")
+    private String id = "xxxxxxxxxx";
+
     @Parameter(names = {"--seed-url", "-u"}, description = "URL of the website to crawl.")
     private String seedUrl = "https://www.usatoday.com";
 
@@ -102,7 +108,7 @@ public class Main {
 
             // The factory which creates instances of crawlers.
             CrawlStats crawlStats = CrawlStats.getInstance();
-            CrawlController.WebCrawlerFactory<MyCrawler> factory = () -> new MyCrawler(seedUrl, crawlStats, outputDirectory, domain, batchSize);
+            CrawlController.WebCrawlerFactory<MyCrawler> factory = () -> new MyCrawler(author, id, numberOfCrawlers, seedUrl, crawlStats, outputDirectory, domain, batchSize);
 
             // Start the crawl. This is a blocking operation, meaning that your code
             // will reach the line after this only when crawling is finished.
@@ -111,7 +117,7 @@ public class Main {
             // NOTE: No need to aggregate thread results as CrawlStats is Singleton and thread-safe
 
             // Store Stats
-            Utils.writeStats(outputDirectory, domain, crawlStats);
+            Utils.writeStats(outputDirectory, domain, crawlStats, author, id, numberOfCrawlers);
 
             logger.info("Done.");
         } catch (Exception e) {
