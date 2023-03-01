@@ -24,16 +24,22 @@ $ sdk install java 19.0.1-tem
 3. Open project in terminal.
 4. Execute run.sh script: `./run.sh <parameters>`. This parameters can be obtained from the program help.
 
-### Program Help
+### Program Help (`./run.sh --help`)
 
 ```text
 Usage: hw2-1.0.jar [options]
   Options:
+    --author
+      Author name for the generated report.
+      Default: John Doe
     --batch-size, -bs
       Save after every x fetches.
       Default: 50
     --help, -h
       Prints the usage of this program.
+    --id
+      ID for the author in the generated report.
+      Default: xxxxxxxxxx
     --max-depth, -d
       The maximum depth to crawl to.
       Default: 16
