@@ -71,7 +71,7 @@ public class MyCrawler extends WebCrawler {
         boolean shouldVisit = !EXCLUSIONS.matcher(href).matches() && residesInside;
 
         if (!shouldVisit) {
-            logger.info("NOT CRAWLING: {}, Doc id: {}", href, url.getDocid());
+            logger.debug("NOT CRAWLING: {}, Doc id: {}", href, url.getDocid());
         }
 
         return shouldVisit;
@@ -98,7 +98,7 @@ public class MyCrawler extends WebCrawler {
         // Add content type for current fetch; avoid charset=utf-8
         String contentType = page.getContentType().split(";")[0];
 
-        logger.info("Docid: {}, Url: {}, Content-Type: {}", docid, url, contentType);
+        logger.debug("Docid: {}, Url: {}, Content-Type: {}", docid, url, contentType);
         if(!ALLOWED_CONTENT_TYPES.contains(contentType)) {
             logger.info("Content-Type: {}", contentType);
             return;
