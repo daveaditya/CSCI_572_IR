@@ -21,6 +21,12 @@ public class MyCrawler extends WebCrawler {
 
     private static final Logger logger = LoggerFactory.getLogger(MyCrawler.class);
 
+    private final String author;
+
+    private final String id;
+
+    private final int numberOfCrawlers;
+
     private final String orgWebsite;
 
     private final CrawlStats crawlStats;
@@ -36,7 +42,10 @@ public class MyCrawler extends WebCrawler {
     private final static Set<String> ALLOWED_CONTENT_TYPES = new HashSet<>(Arrays.asList("text/html", "application/pdf", "image/jpeg", "image/png", "image/bmp", "image/gif", "image/svg+xml", "image/tiff", "image/webp", "image/avif",
             "application/msword"));
 
-    public MyCrawler(String orgWebsite, CrawlStats crawlStats, String outputDirectory, String domain, int batchSize) {
+    public MyCrawler(String author, String id, int numberOfCrawlers, String orgWebsite, CrawlStats crawlStats, String outputDirectory, String domain, int batchSize) {
+        this.author = author;
+        this.id = id;
+        this.numberOfCrawlers = numberOfCrawlers;
         this.orgWebsite = orgWebsite;
         this.crawlStats = crawlStats;
         this.outputDirectory = outputDirectory;
@@ -100,7 +109,7 @@ public class MyCrawler extends WebCrawler {
 
         logger.debug("Docid: {}, Url: {}, Content-Type: {}", docid, url, contentType);
         if(!ALLOWED_CONTENT_TYPES.contains(contentType)) {
-            logger.info("Content-Type: {}", contentType);
+            logger.debug("Content-Type: {}", contentType);
             return;
         }
 
@@ -135,7 +144,7 @@ public class MyCrawler extends WebCrawler {
         // Save data based on after every batchSize number of fetches
         synchronized (this) {
             if (crawlStats.getTotalUrls() % batchSize == 0) {
-                Utils.writeStats(outputDirectory, domain, crawlStats);
+                Utils.writeStats(outputDirectory, domain, crawlStats, author, id, numberOfCrawlers);
             }
         }
     }
