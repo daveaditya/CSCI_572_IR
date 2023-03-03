@@ -79,10 +79,6 @@ public class MyCrawler extends WebCrawler {
 
         boolean shouldVisit = !EXCLUSIONS.matcher(href).matches() && residesInside;
 
-        if (!shouldVisit) {
-            logger.debug("NOT CRAWLING: {}, Doc id: {}", href, url.getDocid());
-        }
-
         return shouldVisit;
     }
 
