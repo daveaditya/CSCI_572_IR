@@ -59,6 +59,7 @@ public class Main {
             jct.usage();
             System.exit(0);
         }
+
         main.run();
     }
 
@@ -67,6 +68,14 @@ public class Main {
     }
 
     public void run() {
+        // If the parameter for number of threads is -1, use max available
+        if(numberOfCrawlers == -1) {
+            numberOfCrawlers = Runtime.getRuntime().availableProcessors();
+        }
+
+        // Log available memory
+        logger.debug("Available Memory: {}", Runtime.getRuntime().maxMemory() / (1024*1024));
+
         try {
             logger.debug("Seed URL: {}", seedUrl);
             logger.debug("Max Pages: {}", maxPages);
