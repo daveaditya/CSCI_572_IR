@@ -93,6 +93,17 @@ public class MyCrawler extends WebCrawler {
         int statusCode = page.getStatusCode();
         String statusMessage = EnglishReasonPhraseCatalog.INSTANCE.getReason(statusCode, Locale.ENGLISH);
 
+        // Get content type for current fetch; avoid charset=utf-8
+        String contentType = page.getContentType().split(";")[0];
+
+        // IMPORTANT: Need to check if the content is the desired on as some URLs might not have extensions
+        // If the content type is not allowed, skip it.
+        // NO statistics should be taken into account for if content type is not desired one
+        if(!ALLOWED_CONTENT_TYPES.contains(contentType)) {
+            logger.debug("Docid: {}, Url: {}, Content-Type: {}", docid, url, contentType);
+            return;
+        }
+
         this.crawlStats.incStatusCodeCounts(String.format("%d %s", statusCode, statusMessage.toUpperCase())); // Update status code count stat
 
         this.crawlStats.addFetch(new Fetch(docid, url, statusCode)); // record new fetch
@@ -100,14 +111,9 @@ public class MyCrawler extends WebCrawler {
         this.crawlStats.incNumOfFetches(); // increment number of fetches
         this.crawlStats.incTotalUrls(); // increment total visited urls
 
-        // Add content type for current fetch; avoid charset=utf-8
-        String contentType = page.getContentType().split(";")[0];
 
         logger.debug("Docid: {}, Url: {}, Content-Type: {}", docid, url, contentType);
-        if(!ALLOWED_CONTENT_TYPES.contains(contentType)) {
-            logger.debug("Content-Type: {}", contentType);
-            return;
-        }
+
 
         if (statusCode >= 200 && statusCode < 300) {
             this.crawlStats.incNumOfSuccessfulFetches(); // Increment Successful Visit Count
