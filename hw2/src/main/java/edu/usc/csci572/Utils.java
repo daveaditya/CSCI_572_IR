@@ -79,6 +79,7 @@ public class Utils {
                 sbc.write(crawlStats.getVisits());
             }
         } catch (Exception e) {
+            e.printStackTrace();
             logger.error(e.getMessage());
         }
     }
@@ -126,7 +127,7 @@ public class Utils {
 //                report.append(String.format("%s: %d\n", pair.getKey(), pair.getValue()));
 //            }
 
-            int[] fileSizeCounts = new int[]{ 0, 0, 0, 0 };
+            int[] fileSizeCounts = new int[]{ 0, 0, 0, 0, 0 };
             report.append(String.format("""
                     \nFile Sizes:
                     ===========
