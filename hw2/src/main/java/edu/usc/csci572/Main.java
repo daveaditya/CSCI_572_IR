@@ -117,7 +117,7 @@ public class Main {
 
             // The factory which creates instances of crawlers.
             CrawlStats crawlStats = CrawlStats.getInstance();
-            CrawlController.WebCrawlerFactory<MyCrawler> factory = () -> new MyCrawler(author, id, numberOfCrawlers, seedUrl, crawlStats, outputDirectory, domain, batchSize);
+            CrawlController.WebCrawlerFactory<MyCrawler> factory = () -> new MyCrawler(author, id, numberOfCrawlers, crawlStats, outputDirectory, domain, batchSize);
 
             // Start the crawl. This is a blocking operation, meaning that your code
             // will reach the line after this only when crawling is finished.
@@ -126,7 +126,10 @@ public class Main {
             // NOTE: No need to aggregate thread results as CrawlStats is Singleton and thread-safe
 
             // Store Stats
-            Utils.writeStats(outputDirectory, domain, crawlStats, author, id, numberOfCrawlers);
+            Utils.writeCsvStats(outputDirectory, domain, crawlStats);
+
+            // Store Report
+            Utils.writeStatsReport(outputDirectory, domain, crawlStats, author, id, numberOfCrawlers);
 
             logger.info("Done.");
         } catch (Exception e) {

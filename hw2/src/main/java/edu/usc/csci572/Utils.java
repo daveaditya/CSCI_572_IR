@@ -1,39 +1,25 @@
 package edu.usc.csci572;
 
 import com.opencsv.CSVWriter;
-import com.opencsv.bean.*;
+import com.opencsv.bean.StatefulBeanToCsv;
+import com.opencsv.bean.StatefulBeanToCsvBuilder;
+import edu.usc.csci572.beans.Fetch;
+import edu.usc.csci572.beans.Url;
+import edu.usc.csci572.beans.Visit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.*;
+import java.io.BufferedWriter;
+import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.List;
-import java.util.Map;
 
 public class Utils {
 
     private static final Logger logger = LoggerFactory.getLogger(Utils.class);
 
-    public static <T> void writeCsv(Path path, List<T> data) throws Exception {
-        CustomMappingStrategy<T> strategy = new CustomMappingStrategy<>();
-
-        // WARN:
-        //noinspection unchecked
-        strategy.setType((Class<? extends T>) data.get(0).getClass());
-
-        try (BufferedWriter writer = Files.newBufferedWriter(path)) {
-            StatefulBeanToCsv<T> sbc = new StatefulBeanToCsvBuilder<T>(writer)
-                    .withSeparator(CSVWriter.DEFAULT_SEPARATOR)
-                    .withMappingStrategy(strategy)
-                    .build();
-
-            sbc.write(data);
-        }
-    }
-
-    public static synchronized void writeStats(String outputDirectory, String domain, CrawlStats crawlStats, String author, String id, int nThreads) {
+    private static void createOutputDirectoryIfNotExists(String outputDirectory) {
         // Create output directory if not present
         File dir = new File(outputDirectory);
         if (!dir.exists()) {
@@ -41,25 +27,68 @@ public class Utils {
                 throw new RuntimeException(String.format("Cannot create output path: %s", outputDirectory));
             }
         }
+    }
 
+    public static synchronized void writeCsvStats(String outputDirectory, String domain, CrawlStats crawlStats) {
+        // Create output directory if not present
+        createOutputDirectoryIfNotExists(outputDirectory);
+
+        String identifier = domain.split("\\.")[0];
+
+        try {
+            // Write CSV files
+            // Store URLs
+            Path urlsCsvFilePath = Paths.get(String.format("%s/urls_%s.csv", outputDirectory, identifier));
+            try (BufferedWriter writer = Files.newBufferedWriter(urlsCsvFilePath)) {
+                CustomMappingStrategy<Url> urlCustomMappingStrategy = new CustomMappingStrategy<>();
+                urlCustomMappingStrategy.setType(Url.class);
+
+                StatefulBeanToCsv<Url> sbc = new StatefulBeanToCsvBuilder<Url>(writer)
+                        .withSeparator(CSVWriter.DEFAULT_SEPARATOR)
+                        .withMappingStrategy(urlCustomMappingStrategy)
+                        .build();
+
+                sbc.write(crawlStats.getUrls());
+            }
+
+            // Store Fetches
+            Path fetchCsvFilePath = Paths.get(String.format("%s/fetch_%s.csv", outputDirectory, identifier));
+            try (BufferedWriter writer = Files.newBufferedWriter(fetchCsvFilePath)) {
+                CustomMappingStrategy<Fetch> fetchCustomMappingStrategy = new CustomMappingStrategy<>();
+                fetchCustomMappingStrategy.setType(Fetch.class);
+
+                StatefulBeanToCsv<Fetch> sbc = new StatefulBeanToCsvBuilder<Fetch>(writer)
+                        .withSeparator(CSVWriter.DEFAULT_SEPARATOR)
+                        .withMappingStrategy(fetchCustomMappingStrategy)
+                        .build();
+
+                sbc.write(crawlStats.getFetches());
+            }
+
+            // Store Visits
+            Path visitsCsvFilePath = Paths.get(String.format("%s/visit_%s.csv", outputDirectory, identifier));
+            try (BufferedWriter writer = Files.newBufferedWriter(visitsCsvFilePath)) {
+                CustomMappingStrategy<Visit> visitCustomMappingStrategy = new CustomMappingStrategy<>();
+                visitCustomMappingStrategy.setType(Visit.class);
+
+                StatefulBeanToCsv<Visit> sbc = new StatefulBeanToCsvBuilder<Visit>(writer)
+                        .withSeparator(CSVWriter.DEFAULT_SEPARATOR)
+                        .withMappingStrategy(visitCustomMappingStrategy)
+                        .build();
+
+                sbc.write(crawlStats.getVisits());
+            }
+        } catch (Exception e) {
+            logger.error(e.getMessage());
+        }
+    }
+
+    public static synchronized void writeStatsReport(String outputDirectory, String domain, CrawlStats crawlStats, String author, String id, int nThreads) {
         String identifier = domain.split("\\.")[0];
 
         // Write Report
         Path reportFilePath = Paths.get(String.format("%s/CrawlReport_%s.txt", outputDirectory, identifier));
         try (BufferedWriter writer = Files.newBufferedWriter(reportFilePath)) {
-            // Write CSV files
-            // Store URLs
-            Path urlsCsvFilePath = Paths.get(String.format("%s/urls_%s.csv", outputDirectory, identifier));
-            Utils.writeCsv(urlsCsvFilePath, crawlStats.getUrls());
-
-            // Store Fetches
-            Path fetchCsvFilePath = Paths.get(String.format("%s/fetch_%s.csv", outputDirectory, identifier));
-            Utils.writeCsv(fetchCsvFilePath, crawlStats.getFetches());
-
-            // Store Visits
-            Path visitsCsvFilePath = Paths.get(String.format("%s/visit_%s.csv", outputDirectory, identifier));
-            Utils.writeCsv(visitsCsvFilePath, crawlStats.getVisits());
-
             StringBuilder report = new StringBuilder();
 
             report.append(String.format("""
@@ -75,7 +104,7 @@ public class Utils {
                     # fetches attempted: %d
                     # fetches succeeded: %d
                     # fetches failed or aborted: %d
-                    """, crawlStats.getNumOfFetches(), crawlStats.getNumOfSuccessfulFetches(), crawlStats.getNumOfFailedFetches()));
+                    """, 0, 0, 0));
 
             report.append(String.format("""
                     \nOutgoing URLs:
@@ -84,19 +113,20 @@ public class Utils {
                     # unique URLs extracted: %d
                     # unique URLs within News Site: %d
                     # unique URLs outside News Site: %d
-                    """, crawlStats.getTotalUniqueCount(), crawlStats.getUniqueWithinCount(), crawlStats.getUniqueOutsideCount()));
+                    """, 0, 0,0));
 
-            int[] fileSizeCounts = crawlStats.getFileSizeByRangeCounts();
+
             report.append("""
                     \nStatus Codes:
                     =============
                     """);
 
             // Loop and get all Status Codes + Counts as String
-            for (Map.Entry<String, Integer> pair : crawlStats.getStatusCodeCounts().entrySet()) {
-                report.append(String.format("%s: %d\n", pair.getKey(), pair.getValue()));
-            }
+//            for (Map.Entry<String, Integer> pair : crawlStats.getStatusCodeCounts().entrySet()) {
+//                report.append(String.format("%s: %d\n", pair.getKey(), pair.getValue()));
+//            }
 
+            int[] fileSizeCounts = new int[]{ 0, 0, 0, 0 };
             report.append(String.format("""
                     \nFile Sizes:
                     ===========
@@ -113,9 +143,9 @@ public class Utils {
                     """);
 
             // Loop and get all Content Types + Count as String
-            for (Map.Entry<String, Integer> pair : crawlStats.getContentTypeCounts().entrySet()) {
-                report.append(String.format("%s: %d\n", pair.getKey(), pair.getValue()));
-            }
+//            for (Map.Entry<String, Integer> pair : crawlStats.getContentTypeCounts().entrySet()) {
+//                report.append(String.format("%s: %d\n", pair.getKey(), pair.getValue()));
+//            }
 
             writer.write(report.toString());
         } catch (Exception e) {
