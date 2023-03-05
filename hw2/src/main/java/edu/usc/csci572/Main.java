@@ -129,7 +129,7 @@ public class Main {
             Utils.writeCsvStats(outputDirectory, domain, crawlStats);
 
             // Store Report
-            Utils.writeStatsReport(outputDirectory, domain, crawlStats, author, id, numberOfCrawlers);
+            Utils.writeStatsReport(outputDirectory, domain, author, id, numberOfCrawlers);
 
             logger.info("Done.");
         } catch (Exception e) {

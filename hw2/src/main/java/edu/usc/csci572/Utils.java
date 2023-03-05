@@ -1,8 +1,6 @@
 package edu.usc.csci572;
 
 import com.opencsv.CSVWriter;
-import com.opencsv.bean.CsvToBean;
-import com.opencsv.bean.CsvToBeanBuilder;
 import com.opencsv.bean.StatefulBeanToCsv;
 import com.opencsv.bean.StatefulBeanToCsvBuilder;
 import edu.usc.csci572.beans.Fetch;
@@ -12,20 +10,14 @@ import org.apache.hc.core5.http.impl.EnglishReasonPhraseCatalog;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.HashSet;
-import java.util.List;
+import java.util.Iterator;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 public class Utils {
 
@@ -96,12 +88,17 @@ public class Utils {
         }
     }
 
-    public static synchronized void writeStatsReport(String outputDirectory, String domain, CrawlStats crawlStats, String author, String id, int nThreads) {
+    public static synchronized void writeStatsReport(String outputDirectory, String domain, String author, String id, int nThreads) {
         String identifier = domain.split("\\.")[0];
 
-        // Write Report
         Path reportFilePath = Paths.get(String.format("%s/CrawlReport_%s.txt", outputDirectory, identifier));
-        try (BufferedWriter writer = Files.newBufferedWriter(reportFilePath)) {
+        Path fetchFilePath = Paths.get(String.format("%s/fetch_%s.csv", outputDirectory, identifier));
+        Path urlsFilePath = Paths.get(String.format("%s/urls_%s.csv", outputDirectory, identifier));
+        Path visitFilePath = Paths.get(String.format("%s/visit_%s.csv", outputDirectory, identifier));
+
+        try (
+                BufferedWriter writer = Files.newBufferedWriter(reportFilePath)
+        ) {
             StringBuilder report = new StringBuilder();
 
             report.append(String.format("""
@@ -112,10 +109,21 @@ public class Utils {
                     """, author, id, domain, nThreads));
 
             // Calculate Fetch Statistics
-            List<Fetch> fetches = crawlStats.getFetches();
-            int totalFetches = fetches.size();
-            long succeededFetchesCount = fetches.stream().filter(fetch -> fetch.getStatusCode() >= 200 && fetch.getStatusCode() < 300).count();
-            long failedFetchesCount = fetches.stream().filter(fetch -> fetch.getStatusCode() >= 300).count();
+            Iterator<Fetch> fetchStream = Fetch.loadFetchCsvStream(fetchFilePath).iterator();
+
+            Fetch.Stats fetchStats = new Fetch.Stats();
+            for (Iterator<Fetch> it = fetchStream; it.hasNext(); ) {
+                Fetch fetch = it.next();
+
+                fetchStats.incTotalFetchCount();
+                if(fetch.getStatusCode() >= 200 && fetch.getStatusCode() < 300) {
+                    fetchStats.incSucceededFetchCount();
+                } else {
+                    fetchStats.incFailedFetchCount();
+                }
+
+                fetchStats.updateStatusCodeCount(fetch.getStatusCode());
+            }
 
             report.append(String.format("""
                     \nFetch Statistics
@@ -123,24 +131,17 @@ public class Utils {
                     # fetches attempted: %d
                     # fetches succeeded: %d
                     # fetches failed or aborted: %d
-                    """, totalFetches, succeededFetchesCount, failedFetchesCount));
+                    """, fetchStats.getTotalFetchCount(), fetchStats.getSucceededFetchCount(), fetchStats.getFailedFetchCount()));
 
             // Calculate URLs count
-            List<Url> urls = crawlStats.getUrls();
-            int totalUrlsCount = urls.size();
+            Url.Stats urlStats = new Url.Stats();
 
-            Set<String> uniqueUrls = new HashSet<>();
-            Set<String> uniqueWithinUrls = new HashSet<>();
-            Set<String> uniqueOutsideUrls = new HashSet<>();
+            // Using BufferedReader directly as OpenCSV stream iterator had memory issues
+            Iterator<String> urlIterator = Files.newBufferedReader(urlsFilePath).lines().iterator();
 
-            for(Url url: crawlStats.getUrls()) {
-                uniqueUrls.add(url.getUrl());
-
-                if(url.getWithinWebsite().equals("OK")) {
-                    uniqueWithinUrls.add(url.getUrl());
-                } else {
-                    uniqueOutsideUrls.add(url.getUrl());
-                }
+            for (Iterator<String> it = urlIterator; it.hasNext(); ) {
+                String[] row = it.next().split(",");
+                urlStats.addUrls(row[0].replace("\"", ""), row[1].replace("\"", ""));
             }
 
             report.append(String.format("""
@@ -150,44 +151,30 @@ public class Utils {
                     # unique URLs extracted: %d
                     # unique URLs within News Site: %d
                     # unique URLs outside News Site: %d
-                    """, totalUrlsCount, uniqueUrls.size(), uniqueWithinUrls.size(), uniqueOutsideUrls.size()));
-
+                    """, urlStats.getTotalCount(), urlStats.getUniqueUrlCount(), urlStats.getUniqueWithinUrlCount(), urlStats.getUniqueOutsideUrlCount()));
 
             report.append("""
                     \nStatus Codes:
                     =============
                     """);
 
-            // Count all status codes
-            Map<Integer, Long> statusCodeCounts = fetches.stream().collect(Collectors.groupingBy(Fetch::getStatusCode, Collectors.counting()));
-
             // Loop and append all Status Codes + Counts as String
-            for (Map.Entry<Integer, Long> pair : statusCodeCounts.entrySet()) {
+            for (Map.Entry<Integer, Integer> pair : fetchStats.getStatusCodeCounts().entrySet()) {
                 String statusCodeWithMessage = EnglishReasonPhraseCatalog.INSTANCE.getReason(pair.getKey(), Locale.ENGLISH);
-                report.append(String.format("%s: %d\n",statusCodeWithMessage, pair.getValue()));
+                report.append(String.format("%d %s: %d\n", pair.getKey(), statusCodeWithMessage, pair.getValue()));
             }
 
-            List<Visit> visits = crawlStats.getVisits();
 
-            int[] fileSizeCountsByRange = new int[]{ 0, 0, 0, 0, 0 };
+            Iterator<Visit> visitIterator = Visit.loadVisitCsvStream(visitFilePath).iterator();
+            Visit.Stats visitStats = new Visit.Stats();
 
-            int KB = 1024;
-            int MB = 1024 * KB;
-
-            for(Visit visit: visits) {
-                long size = visit.getSize();
-                if (size < KB) {
-                    fileSizeCountsByRange[0]++;
-                } else if (size < 10 * KB) {
-                    fileSizeCountsByRange[1]++;
-                } else if (size < 100 * KB) {
-                    fileSizeCountsByRange[2]++;
-                } else if (size < MB) {
-                    fileSizeCountsByRange[3]++;
-                } else {
-                    fileSizeCountsByRange[4]++;
-                }
+            for (Iterator<Visit> it = visitIterator; it.hasNext();) {
+                Visit visit = it.next();
+                visitStats.addContentType(visit);
+                visitStats.countFileSize(visit);
             }
+
+            int[] fileSizeCountsByRange = visitStats.getFileSizeCountsByRange();
 
             report.append(String.format("""
                     \nFile Sizes:
@@ -204,17 +191,14 @@ public class Utils {
                     ==============
                     """);
 
-            // Count all Content-Types
-            Map<String, Long> contentTypeCounts = visits.stream().collect(Collectors.groupingBy(Visit::getContentType, Collectors.counting()));
-
             // Loop and get all Content Types + Count as String
-            for (Map.Entry<String, Long> pair : contentTypeCounts.entrySet()) {
+            for (Map.Entry<String, Long> pair : visitStats.getContentTypeCounts().entrySet()) {
                 report.append(String.format("%s: %d\n", pair.getKey(), pair.getValue()));
             }
 
             writer.write(report.toString());
         } catch (Exception e) {
-            logger.error(e.getMessage());
+            e.printStackTrace();
         }
     }
 
