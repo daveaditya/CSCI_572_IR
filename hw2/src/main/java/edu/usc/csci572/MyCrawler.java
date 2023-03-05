@@ -90,6 +90,7 @@ public class MyCrawler extends WebCrawler {
 
         this.crawlStats.incTotalUrls(); // increment total visited urls
 
+        logger.debug("HERE### Total URLs: {}", crawlStats.getTotalUrls());
         logger.debug("Docid: {}, Url: {}, Content-Type: {}", docid, url, contentType);
 
         if (statusCode >= 200 && statusCode < 300) {
@@ -115,6 +116,7 @@ public class MyCrawler extends WebCrawler {
         // Save data based on after every batchSize number of fetches
         synchronized (this) {
             if (crawlStats.getTotalUrls() % batchSize == 0) {
+                logger.debug("Saving stats now...");
                 Utils.writeCsvStats(outputDirectory, domain, crawlStats);
             }
         }
