@@ -1,12 +1,11 @@
 package edu.usc.csci572.beans;
 
 import com.opencsv.CSVWriter;
+import com.opencsv.bean.ColumnPositionMappingStrategy;
 import com.opencsv.bean.CsvBindByName;
 import com.opencsv.bean.CsvBindByPosition;
 import com.opencsv.bean.CsvIgnore;
-import com.opencsv.bean.CsvToBean;
 import com.opencsv.bean.CsvToBeanBuilder;
-import com.opencsv.bean.HeaderColumnNameTranslateMappingStrategy;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -15,9 +14,9 @@ import java.io.Serializable;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.stream.Stream;
 
 public class Fetch implements Serializable {
 
@@ -75,30 +74,24 @@ public class Fetch implements Serializable {
         this.statusCode = statusCode;
     }
 
-    public static List<Fetch> loadFromCsv(String filePath) throws IOException {
-        List<Fetch> fetches;
-
-        HeaderColumnNameTranslateMappingStrategy<Fetch> mappingStrategy =
-                new HeaderColumnNameTranslateMappingStrategy<>();
-        mappingStrategy.setColumnMapping(columnMappings);
+    public static Stream<Fetch> loadFetchCsvStream(Path path) throws IOException {
+        ColumnPositionMappingStrategy<Fetch> mappingStrategy =
+                new ColumnPositionMappingStrategy<>();
         mappingStrategy.setType(Fetch.class);
 
-        Path path = Paths.get(filePath);
-        try(BufferedReader reader = Files.newBufferedReader(path)) {
-
-            CsvToBean<Fetch> csvToBean = new CsvToBeanBuilder<Fetch>(reader)
+        try {
+            BufferedReader reader = Files.newBufferedReader(path);
+            return new CsvToBeanBuilder<Fetch>(reader)
                     .withSeparator(CSVWriter.DEFAULT_SEPARATOR)
                     .withIgnoreEmptyLine(true)
                     .withMappingStrategy(mappingStrategy)
-                    .build();
-
-            fetches = csvToBean.parse();
-
+                    .withSkipLines(1)
+                    .build()
+                    .stream();
         } catch (IOException e) {
             e.printStackTrace();
-            throw(e);
+            throw e;
         }
-        return fetches;
     }
 
     @Override
@@ -108,5 +101,65 @@ public class Fetch implements Serializable {
                 ", url='" + url + '\'' +
                 ", statusCode=" + statusCode +
                 '}';
+    }
+
+
+    public static class Stats {
+        private int totalFetchCount;
+
+        private int succeededFetchCount;
+
+        private int failedFetchCount;
+
+        private Map<Integer, Integer> statusCodeCounts;
+
+        public Stats() {
+            totalFetchCount = 0;
+            succeededFetchCount = 0;
+            failedFetchCount = 0;
+            statusCodeCounts = new LinkedHashMap<>();
+        }
+
+        public Stats(int totalFetchCount, int succeededFetchCount, int failedFetchCount) {
+            this.totalFetchCount = totalFetchCount;
+            this.succeededFetchCount = succeededFetchCount;
+            this.failedFetchCount = failedFetchCount;
+        }
+
+        public int getTotalFetchCount() {
+            return totalFetchCount;
+        }
+
+        public void incTotalFetchCount() {
+            this.totalFetchCount++;
+        }
+
+        public int getSucceededFetchCount() {
+            return succeededFetchCount;
+        }
+
+        public void incSucceededFetchCount() {
+            this.succeededFetchCount++;
+        }
+
+        public int getFailedFetchCount() {
+            return failedFetchCount;
+        }
+
+        public void incFailedFetchCount() {
+            this.failedFetchCount++;
+        }
+
+        public Map<Integer, Integer> getStatusCodeCounts() {
+            return statusCodeCounts;
+        }
+
+        public void updateStatusCodeCount(int statusCode) {
+            if (statusCodeCounts.containsKey(statusCode)) {
+                this.statusCodeCounts.put(statusCode, statusCodeCounts.get(statusCode) + 1);
+            } else {
+                this.statusCodeCounts.put(statusCode, 1);
+            }
+        }
     }
 }

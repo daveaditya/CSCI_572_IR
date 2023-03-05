@@ -5,9 +5,7 @@ import com.opencsv.bean.ColumnPositionMappingStrategy;
 import com.opencsv.bean.CsvBindByName;
 import com.opencsv.bean.CsvBindByPosition;
 import com.opencsv.bean.CsvIgnore;
-import com.opencsv.bean.CsvToBean;
 import com.opencsv.bean.CsvToBeanBuilder;
-import com.opencsv.bean.HeaderColumnNameTranslateMappingStrategy;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -16,8 +14,9 @@ import java.io.Serializable;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.List;
+import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.stream.Stream;
 
 public class Visit implements Serializable {
 
@@ -95,30 +94,24 @@ public class Visit implements Serializable {
         this.contentType = contentType;
     }
 
-    public static List<Visit> loadFromCsv(String filePath) throws IOException {
-        List<Visit> visits;
-
-        HeaderColumnNameTranslateMappingStrategy<Visit> mappingStrategy =
-                new HeaderColumnNameTranslateMappingStrategy<>();
-        mappingStrategy.setColumnMapping(columnMappings);
+    public static Stream<Visit> loadVisitCsvStream(Path path) throws IOException {
+        ColumnPositionMappingStrategy<Visit> mappingStrategy =
+                new ColumnPositionMappingStrategy<>();
         mappingStrategy.setType(Visit.class);
 
-        Path path = Paths.get(filePath);
-        try(BufferedReader reader = Files.newBufferedReader(path)) {
-
-            CsvToBean<Visit> csvToBean = new CsvToBeanBuilder<Visit>(reader)
+        try {
+            BufferedReader reader = Files.newBufferedReader(path);
+            return new CsvToBeanBuilder<Visit>(reader)
                     .withSeparator(CSVWriter.DEFAULT_SEPARATOR)
                     .withIgnoreEmptyLine(true)
                     .withMappingStrategy(mappingStrategy)
-                    .build();
-
-            visits = csvToBean.parse();
-
+                    .withSkipLines(1)
+                    .build()
+                    .stream();
         } catch (IOException e) {
             e.printStackTrace();
-            throw(e);
+            throw e;
         }
-        return visits;
     }
 
     @Override
@@ -130,5 +123,53 @@ public class Visit implements Serializable {
                 ", numOfOutlinks=" + numOfOutlinks +
                 ", contentType='" + contentType + '\'' +
                 '}';
+    }
+
+    public static class Stats {
+
+        private final int[] fileSizeCountsByRange;
+
+        private final Map<String, Long> contentTypeCounts;
+
+        private static final int KB = 1024;
+
+        private static final int MB = 1024 * KB;
+
+        public Stats() {
+            this.fileSizeCountsByRange = new int[]{ 0, 0, 0, 0, 0 };
+            this.contentTypeCounts = new LinkedHashMap<>();
+        }
+
+        public int[] getFileSizeCountsByRange() {
+            return fileSizeCountsByRange;
+        }
+
+        public void countFileSize(Visit visit) {
+            long size = visit.getSize();
+            if (size < KB) {
+                this.fileSizeCountsByRange[0]++;
+            } else if (size < 10 * KB) {
+                this.fileSizeCountsByRange[1]++;
+            } else if (size < 100 * KB) {
+                this.fileSizeCountsByRange[2]++;
+            } else if (size < MB) {
+                this.fileSizeCountsByRange[3]++;
+            } else {
+                this.fileSizeCountsByRange[4]++;
+            }
+        }
+
+        public Map<String, Long> getContentTypeCounts() {
+            return contentTypeCounts;
+        }
+
+        public void addContentType(Visit visit) {
+            String contentType = visit.contentType;
+            if(this.contentTypeCounts.containsKey(contentType)) {
+                this.contentTypeCounts.put(contentType, this.contentTypeCounts.get(contentType) + 1);
+            } else {
+                this.contentTypeCounts.put(contentType, 1L);
+            }
+        }
     }
 }

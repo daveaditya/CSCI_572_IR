@@ -2,22 +2,25 @@ package edu.usc.csci572.beans;
 
 
 import com.opencsv.CSVWriter;
+import com.opencsv.bean.ColumnPositionMappingStrategy;
 import com.opencsv.bean.CsvBindByName;
 import com.opencsv.bean.CsvBindByPosition;
 import com.opencsv.bean.CsvIgnore;
-import com.opencsv.bean.CsvToBean;
 import com.opencsv.bean.CsvToBeanBuilder;
 import com.opencsv.bean.HeaderColumnNameTranslateMappingStrategy;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.Reader;
 import java.io.Serial;
 import java.io.Serializable;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.List;
+import java.util.LinkedHashSet;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Stream;
 
 public class Url implements Serializable {
 
@@ -75,30 +78,25 @@ public class Url implements Serializable {
         this.withinWebsite = withinWebsite;
     }
 
-    public static List<Url> loadFromCsv(String filePath) throws IOException {
-        List<Url> urls;
-
-        HeaderColumnNameTranslateMappingStrategy<Url> mappingStrategy =
-                new HeaderColumnNameTranslateMappingStrategy<>();
-        mappingStrategy.setColumnMapping(columnMappings);
+    private Stream<Url> loadUrlStream(String filePath) throws IOException {
+        ColumnPositionMappingStrategy<Url> mappingStrategy =
+                new ColumnPositionMappingStrategy<>();
         mappingStrategy.setType(Url.class);
 
         Path path = Paths.get(filePath);
-        try(BufferedReader reader = Files.newBufferedReader(path)) {
-
-            CsvToBean<Url> csvToBean = new CsvToBeanBuilder<Url>(reader)
+        try {
+            BufferedReader reader = Files.newBufferedReader(path);
+            return new CsvToBeanBuilder<Url>(reader)
                     .withSeparator(CSVWriter.DEFAULT_SEPARATOR)
                     .withIgnoreEmptyLine(true)
                     .withMappingStrategy(mappingStrategy)
-                    .build();
-
-            urls = csvToBean.parse();
-
+                    .withSkipLines(1)
+                    .build()
+                    .stream();
         } catch (IOException e) {
             e.printStackTrace();
-            throw(e);
+            throw e;
         }
-        return urls;
     }
 
     @Override
@@ -108,5 +106,63 @@ public class Url implements Serializable {
                 ", url='" + url + '\'' +
                 ", withinWebsite=" + withinWebsite +
                 '}';
+    }
+
+    public static class Stats {
+
+        private int totalCount;
+
+        private final Set<String> uniqueUrls;
+
+        private final Set<String> uniqueWithinUrls;
+
+        private final Set<String> uniqueOutsideUrls;
+
+        public Stats() {
+            this.totalCount = 0;
+            this.uniqueUrls = new LinkedHashSet<>();
+            this.uniqueWithinUrls = new LinkedHashSet<>();
+            this.uniqueOutsideUrls = new LinkedHashSet<>();
+        }
+
+        public void addUrls(Url url) {
+            this.totalCount += 1;
+
+            String link = url.getUrl();
+            this.uniqueUrls.add(link);
+            if(url.getWithinWebsite().equals("OK")) {
+                this.uniqueWithinUrls.add(link);
+            } else {
+                this.uniqueOutsideUrls.add(link);
+            }
+        }
+
+        public void addUrls(String url, String withinWebsite) {
+            this.totalCount += 1;
+
+            String link = url;
+            this.uniqueUrls.add(url);
+            if(withinWebsite.equals("OK")) {
+                this.uniqueWithinUrls.add(link);
+            } else {
+                this.uniqueOutsideUrls.add(link);
+            }
+        }
+
+        public int getTotalCount() {
+            return this.totalCount;
+        }
+
+        public int getUniqueUrlCount() {
+            return uniqueUrls.size();
+        }
+
+        public int getUniqueWithinUrlCount() {
+            return uniqueWithinUrls.size();
+        }
+
+        public int getUniqueOutsideUrlCount() {
+            return uniqueOutsideUrls.size();
+        }
     }
 }
