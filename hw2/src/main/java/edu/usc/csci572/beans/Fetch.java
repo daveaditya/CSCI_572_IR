@@ -4,7 +4,14 @@ import com.opencsv.bean.CsvBindByName;
 import com.opencsv.bean.CsvBindByPosition;
 import com.opencsv.bean.CsvIgnore;
 
-public class Fetch {
+import java.io.Serial;
+import java.io.Serializable;
+
+public class Fetch implements Serializable {
+
+    @Serial
+    @CsvIgnore
+    private static final long serialVersionUID = 1L;
 
     @CsvIgnore
     private final int docid;
@@ -21,6 +28,10 @@ public class Fetch {
         this.docid = docid;
         this.url = url;
         this.statusCode = statusCode;
+    }
+
+    public int getStatusCode() {
+        return statusCode;
     }
 
     @Override

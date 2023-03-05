@@ -5,7 +5,14 @@ import com.opencsv.bean.CsvBindByName;
 import com.opencsv.bean.CsvBindByPosition;
 import com.opencsv.bean.CsvIgnore;
 
-public class Visit {
+import java.io.Serial;
+import java.io.Serializable;
+
+public class Visit implements Serializable {
+
+    @Serial
+    @CsvIgnore
+    private static final long serialVersionUID = 3L;
 
     @CsvIgnore
     private int docid;
@@ -37,12 +44,20 @@ public class Visit {
         this.url = url;
     }
 
+    public long getSize() {
+        return size;
+    }
+
     public void setSize(long size) {
         this.size = size;
     }
 
     public void setNumOfOutlinks(int numOfOutlinks) {
         this.numOfOutlinks = numOfOutlinks;
+    }
+
+    public String getContentType() {
+        return contentType;
     }
 
     public void setContentType(String contentType) {

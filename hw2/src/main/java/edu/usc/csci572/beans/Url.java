@@ -6,7 +6,14 @@ import com.opencsv.bean.CsvBindByName;
 import com.opencsv.bean.CsvBindByPosition;
 import com.opencsv.bean.CsvIgnore;
 
-public class Url {
+import java.io.Serial;
+import java.io.Serializable;
+
+public class Url implements Serializable {
+
+    @Serial
+    @CsvIgnore
+    private static final long serialVersionUID = 2L;
 
     @CsvIgnore
     int docid;
@@ -23,6 +30,18 @@ public class Url {
         this.docid = docid;
         this.url = url;
         this.withinWebsite = withinWebsite;
+    }
+
+    public int getDocid() {
+        return docid;
+    }
+
+    public String getUrl() {
+        return url;
+    }
+
+    public String getWithinWebsite() {
+        return withinWebsite;
     }
 
     @Override
