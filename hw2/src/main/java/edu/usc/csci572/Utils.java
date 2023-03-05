@@ -33,7 +33,7 @@ public class Utils {
         }
     }
 
-    public static synchronized void writeCsvStats(String outputDirectory, String domain, CrawlStats crawlStats) {
+    public static synchronized void writeCsvStats(String outputDirectory, String domain, CrawlData crawlData) {
         // Create output directory if not present
         createOutputDirectoryIfNotExists(outputDirectory);
 
@@ -52,7 +52,7 @@ public class Utils {
                         .withMappingStrategy(urlCustomMappingStrategy)
                         .build();
 
-                sbc.write(crawlStats.getUrls());
+                sbc.write(crawlData.getUrls());
             }
 
             // Store Fetches
@@ -66,7 +66,7 @@ public class Utils {
                         .withMappingStrategy(fetchCustomMappingStrategy)
                         .build();
 
-                sbc.write(crawlStats.getFetches());
+                sbc.write(crawlData.getFetches());
             }
 
             // Store Visits
@@ -80,7 +80,7 @@ public class Utils {
                         .withMappingStrategy(visitCustomMappingStrategy)
                         .build();
 
-                sbc.write(crawlStats.getVisits());
+                sbc.write(crawlData.getVisits());
             }
         } catch (Exception e) {
             e.printStackTrace();

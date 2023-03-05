@@ -8,7 +8,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-public class CrawlStats {
+public class CrawlData {
 
     private final List<Url> urls;
 
@@ -18,19 +18,19 @@ public class CrawlStats {
 
     private int totalUrls = 0;
 
-    private static CrawlStats _crawlStats = null;
+    private static CrawlData _crawlData = null;
 
-    private CrawlStats() {
+    private CrawlData() {
         this.urls = new ArrayList<>();
         this.fetches = new ArrayList<>();
         this.visits = new ArrayList<>();
     }
 
-    public static synchronized CrawlStats getInstance() {
-        if (_crawlStats == null) {
-            _crawlStats = new CrawlStats();
+    public static synchronized CrawlData getInstance() {
+        if (_crawlData == null) {
+            _crawlData = new CrawlData();
         }
-        return _crawlStats;
+        return _crawlData;
     }
 
     public List<Url> getUrls() {
@@ -67,7 +67,7 @@ public class CrawlStats {
 
     @Override
     public String toString() {
-        return "CrawlStats{" +
+        return "CrawlData{" +
                 "urls=" + urls +
                 ", fetches=" + fetches +
                 ", visits=" + visits +

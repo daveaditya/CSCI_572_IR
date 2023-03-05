@@ -15,11 +15,11 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.regex.Pattern;
 
-public class MyCrawler extends WebCrawler {
+public class Crawler extends WebCrawler {
 
-    private static final Logger logger = LoggerFactory.getLogger(MyCrawler.class);
+    private static final Logger logger = LoggerFactory.getLogger(Crawler.class);
 
-    private final CrawlStats crawlStats;
+    private final CrawlData crawlData;
 
     private final String outputDirectory;
 
@@ -32,8 +32,8 @@ public class MyCrawler extends WebCrawler {
     private final static Set<String> ALLOWED_CONTENT_TYPES = new HashSet<>(Arrays.asList("text/html", "application/pdf", "image/jpeg", "image/png", "image/bmp", "image/gif", "image/svg+xml", "image/tiff", "image/webp", "image/avif",
             "application/msword"));
 
-    public MyCrawler(String author, String id, int numberOfCrawlers, CrawlStats crawlStats, String outputDirectory, String domain, int batchSize) {
-        this.crawlStats = crawlStats;
+    public Crawler(CrawlData crawlData, String outputDirectory, String domain, int batchSize) {
+        this.crawlData = crawlData;
         this.outputDirectory = outputDirectory;
         this.domain = domain;
         this.batchSize = batchSize;
@@ -56,7 +56,7 @@ public class MyCrawler extends WebCrawler {
         boolean residesInside = href.matches("https?://(www.)?" + domain + "/?.*");
 
         // Store all the URLs checked or visited and also mention whether it is within the website or not
-        this.crawlStats.addUrl(new Url(
+        this.crawlData.addUrl(new Url(
                 url.getDocid(),
                 urlSrc,
                 residesInside ? "OK" : "N_OK"
@@ -86,11 +86,11 @@ public class MyCrawler extends WebCrawler {
             return;
         }
 
-        this.crawlStats.addFetch(new Fetch(docid, url, statusCode)); // record new fetch
+        this.crawlData.addFetch(new Fetch(docid, url, statusCode)); // record new fetch
 
-        this.crawlStats.incTotalUrls(); // increment total visited urls
+        this.crawlData.incTotalUrls(); // increment total visited urls
 
-        logger.debug("HERE### Total URLs: {}", crawlStats.getTotalUrls());
+        logger.debug("HERE### Total URLs: {}", crawlData.getTotalUrls());
         logger.debug("Docid: {}, Url: {}, Content-Type: {}", docid, url, contentType);
 
         if (statusCode >= 200 && statusCode < 300) {
@@ -110,21 +110,21 @@ public class MyCrawler extends WebCrawler {
             int size = page.getContentData().length;
             visit.setSize(size);
 
-            this.crawlStats.addVisit(visit); // add Visit to the stats
+            this.crawlData.addVisit(visit); // add Visit to the stats
         }
 
         // Save data based on after every batchSize number of fetches
         synchronized (this) {
-            if (crawlStats.getTotalUrls() % batchSize == 0) {
+            if (crawlData.getTotalUrls() % batchSize == 0) {
                 logger.debug("Saving stats now...");
-                Utils.writeCsvStats(outputDirectory, domain, crawlStats);
+                Utils.writeCsvStats(outputDirectory, domain, crawlData);
             }
         }
     }
 
     @Override
     public Object getMyLocalData() {
-        return this.crawlStats;
+        return this.crawlData;
     }
 
 }
