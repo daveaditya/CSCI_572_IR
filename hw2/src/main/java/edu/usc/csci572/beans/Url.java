@@ -75,7 +75,7 @@ public class Url implements Serializable {
         this.withinWebsite = withinWebsite;
     }
 
-    public List<Url> loadFromCsv(String filePath) throws IOException {
+    public static List<Url> loadFromCsv(String filePath) throws IOException {
         List<Url> urls;
 
         HeaderColumnNameTranslateMappingStrategy<Url> mappingStrategy =

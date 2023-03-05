@@ -75,7 +75,7 @@ public class Fetch implements Serializable {
         this.statusCode = statusCode;
     }
 
-    public List<Fetch> loadFromCsv(String filePath) throws IOException {
+    public static List<Fetch> loadFromCsv(String filePath) throws IOException {
         List<Fetch> fetches;
 
         HeaderColumnNameTranslateMappingStrategy<Fetch> mappingStrategy =

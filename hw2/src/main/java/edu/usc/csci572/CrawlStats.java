@@ -10,11 +10,11 @@ import java.util.List;
 
 public class CrawlStats {
 
-    private final List<Url> urls;
+    private List<Url> urls;
 
-    private final List<Fetch> fetches;
+    private List<Fetch> fetches;
 
-    private final List<Visit> visits;
+    private List<Visit> visits;
 
     private int totalUrls = 0;
 
@@ -63,6 +63,14 @@ public class CrawlStats {
 
     public synchronized void incTotalUrls() {
         this.totalUrls++;
+    }
+
+    public static CrawlStats loadFromCsv(List<Url> urls, List<Fetch> fetches, List<Visit> visits) {
+        CrawlStats instance = CrawlStats.getInstance();
+        instance.urls = urls;
+        instance.visits = visits;
+        instance.fetches = fetches;
+        return instance;
     }
 
     @Override

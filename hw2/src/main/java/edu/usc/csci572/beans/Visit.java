@@ -95,7 +95,7 @@ public class Visit implements Serializable {
         this.contentType = contentType;
     }
 
-    public List<Visit> loadFromCsv(String filePath) throws IOException {
+    public static List<Visit> loadFromCsv(String filePath) throws IOException {
         List<Visit> visits;
 
         HeaderColumnNameTranslateMappingStrategy<Visit> mappingStrategy =
