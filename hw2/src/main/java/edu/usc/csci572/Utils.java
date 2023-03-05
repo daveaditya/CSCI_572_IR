@@ -6,6 +6,7 @@ import com.opencsv.bean.StatefulBeanToCsvBuilder;
 import edu.usc.csci572.beans.Fetch;
 import edu.usc.csci572.beans.Url;
 import edu.usc.csci572.beans.Visit;
+import org.apache.hc.core5.http.impl.EnglishReasonPhraseCatalog;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -14,6 +15,12 @@ import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 public class Utils {
 
@@ -99,22 +106,46 @@ public class Utils {
                     Number of threads: %d
                     """, author, id, domain, nThreads));
 
+            // Calculate Fetch Statistics
+            List<Fetch> fetches = crawlStats.getFetches();
+            int totalFetches = fetches.size();
+            long succeededFetchesCount = fetches.stream().filter(fetch -> fetch.getStatusCode() >= 200 && fetch.getStatusCode() < 300).count();
+            long failedFetchesCount = fetches.stream().filter(fetch -> fetch.getStatusCode() >= 300).count();
+
             report.append(String.format("""
                     \nFetch Statistics
                     ================
                     # fetches attempted: %d
                     # fetches succeeded: %d
                     # fetches failed or aborted: %d
-                    """, 0, 0, 0));
+                    """, totalFetches, succeededFetchesCount, failedFetchesCount));
+
+            // Calculate URLs count
+            List<Url> urls = crawlStats.getUrls();
+            int totalUrlsCount = urls.size();
+
+            Set<String> uniqueUrls = new HashSet<>();
+            Set<String> uniqueWithinUrls = new HashSet<>();
+            Set<String> uniqueOutsideUrls = new HashSet<>();
+
+            for(Url url: crawlStats.getUrls()) {
+                uniqueUrls.add(url.getUrl());
+
+                if(url.getWithinWebsite().equals("OK")) {
+                    uniqueWithinUrls.add(url.getUrl());
+                } else {
+                    uniqueOutsideUrls.add(url.getUrl());
+                }
+            }
 
             report.append(String.format("""
                     \nOutgoing URLs:
                     ==============
-                    Total URLs extracted:
+                    Total URLs extracted: %d
                     # unique URLs extracted: %d
                     # unique URLs within News Site: %d
                     # unique URLs outside News Site: %d
-                    """, 0, 0,0));
+                    """, totalUrlsCount, uniqueUrls.size(), uniqueWithinUrls.size(), uniqueOutsideUrls.size()));
 
 
             report.append("""
@@ -122,12 +153,37 @@ public class Utils {
                     =============
                     """);
 
-            // Loop and get all Status Codes + Counts as String
-//            for (Map.Entry<String, Integer> pair : crawlStats.getStatusCodeCounts().entrySet()) {
-//                report.append(String.format("%s: %d\n", pair.getKey(), pair.getValue()));
-//            }
+            // Count all status codes
+            Map<Integer, Long> statusCodeCounts = fetches.stream().collect(Collectors.groupingBy(Fetch::getStatusCode, Collectors.counting()));
 
-            int[] fileSizeCounts = new int[]{ 0, 0, 0, 0, 0 };
+            // Loop and append all Status Codes + Counts as String
+            for (Map.Entry<Integer, Long> pair : statusCodeCounts.entrySet()) {
+                String statusCodeWithMessage = EnglishReasonPhraseCatalog.INSTANCE.getReason(pair.getKey(), Locale.ENGLISH);
+                report.append(String.format("%s: %d\n",statusCodeWithMessage, pair.getValue()));
+            }
+
+            List<Visit> visits = crawlStats.getVisits();
+
+            int[] fileSizeCountsByRange = new int[]{ 0, 0, 0, 0, 0 };
+
+            int KB = 1024;
+            int MB = 1024 * KB;
+
+            for(Visit visit: visits) {
+                long size = visit.getSize();
+                if (size < KB) {
+                    fileSizeCountsByRange[0]++;
+                } else if (size < 10 * KB) {
+                    fileSizeCountsByRange[1]++;
+                } else if (size < 100 * KB) {
+                    fileSizeCountsByRange[2]++;
+                } else if (size < MB) {
+                    fileSizeCountsByRange[3]++;
+                } else {
+                    fileSizeCountsByRange[4]++;
+                }
+            }
+
             report.append(String.format("""
                     \nFile Sizes:
                     ===========
@@ -136,17 +192,20 @@ public class Utils {
                     10KB ~ <100KB: %d
                     100KB ~ <1MB: %d
                     >= 1MB: %d
-                    """, fileSizeCounts[0], fileSizeCounts[1], fileSizeCounts[2], fileSizeCounts[3], fileSizeCounts[4]));
+                    """, fileSizeCountsByRange[0], fileSizeCountsByRange[1], fileSizeCountsByRange[2], fileSizeCountsByRange[3], fileSizeCountsByRange[4]));
 
             report.append("""
                     \nContent Types:
                     ==============
                     """);
 
+            // Count all Content-Types
+            Map<String, Long> contentTypeCounts = visits.stream().collect(Collectors.groupingBy(Visit::getContentType, Collectors.counting()));
+
             // Loop and get all Content Types + Count as String
-//            for (Map.Entry<String, Integer> pair : crawlStats.getContentTypeCounts().entrySet()) {
-//                report.append(String.format("%s: %d\n", pair.getKey(), pair.getValue()));
-//            }
+            for (Map.Entry<String, Long> pair : contentTypeCounts.entrySet()) {
+                report.append(String.format("%s: %d\n", pair.getKey(), pair.getValue()));
+            }
 
             writer.write(report.toString());
         } catch (Exception e) {
