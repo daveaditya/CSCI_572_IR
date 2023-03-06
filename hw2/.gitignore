@@ -23,3 +23,6 @@ out/
 
 .DS_Store
 /results/
+
+submission/*
+!submission/submission.zip
