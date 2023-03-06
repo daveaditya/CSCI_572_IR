@@ -104,7 +104,7 @@ public class MainTest {
         String identifier = domain.split("\\.")[0];
 
         // Write Report
-        Path reportFilePath = Paths.get(String.format("%s/CrawlReport_%s.txt", outputDirectory, identifier));
+        Path reportFilePath = Paths.get(String.format("src/test/submission/%s/CrawlReport_%s.txt", outputDirectory, identifier));
         try (
                 BufferedWriter writer = Files.newBufferedWriter(reportFilePath)
         ) {
