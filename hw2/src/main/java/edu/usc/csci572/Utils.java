@@ -36,73 +36,6 @@ public class Utils {
         }
     }
 
-//    public static synchronized void saveToCsv(CrawlData crawlData, String outputDirectory, String domain) throws IOException {
-//        // Create output directory if not present
-//        createDirectoryIfNotExists(outputDirectory);
-//
-//        String identifier = domain.split("\\.")[0];
-//
-//        try {
-//            // Write CSV files
-//            // Store URLs
-//            String urlsCsvFilePath = String.format("%s/urls_%s.csv", outputDirectory, identifier);
-//            boolean doesUrlsFilesExists = Files.exists(Paths.get(urlsCsvFilePath));
-//            try (
-//                    FileWriter fileWriter = new FileWriter(urlsCsvFilePath, true);
-//                    CSVWriter csvWriter = new CSVWriter(fileWriter, CSVWriter.DEFAULT_SEPARATOR, CSVWriter.NO_QUOTE_CHARACTER,
-//                            CSVWriter.DEFAULT_ESCAPE_CHARACTER, CSVWriter.DEFAULT_LINE_END);
-//            ) {
-//                if(!doesUrlsFilesExists) {
-//                    csvWriter.writeNext(new String[] {"URL", "URL Type"});
-//                }
-//
-//                for (ListIterator<Url> it = crawlData.getUrls().listIterator(); it.hasNext(); ) {
-//                    Url url = it.next();
-//                    csvWriter.writeNext(new String[] { url.getUrl(), url.getWithinWebsite() });
-//                }
-//            }
-//
-//            // Store Fetches
-//            String fetchCsvFilePath = String.format("%s/fetch_%s.csv", outputDirectory, identifier);
-//            boolean doesFetchFileExists = Files.exists(Paths.get(fetchCsvFilePath));
-//            try (
-//                    FileWriter fileWriter = new FileWriter(fetchCsvFilePath, true);
-//                    CSVWriter csvWriter = new CSVWriter(fileWriter, CSVWriter.DEFAULT_SEPARATOR, CSVWriter.NO_QUOTE_CHARACTER,
-//                            CSVWriter.DEFAULT_ESCAPE_CHARACTER, CSVWriter.DEFAULT_LINE_END);
-//            ) {
-//                if(!doesFetchFileExists) {
-//                    csvWriter.writeNext(new String[] {"URL", "Status"});
-//                }
-//
-//                for (ListIterator<Fetch> it = crawlData.getFetches().listIterator(); it.hasNext(); ) {
-//                    Fetch fetch = it.next();
-//                    csvWriter.writeNext(new String[] { fetch.getUrl(), String.valueOf(fetch.getStatusCode()) });
-//                }
-//            }
-//
-//            // Store Visits
-//            String visitsCsvFilePath = String.format("%s/visit_%s.csv", outputDirectory, identifier);
-//            boolean doesVisitsFileExists = Files.exists(Paths.get(visitsCsvFilePath));
-//            try (
-//                    FileWriter fileWriter = new FileWriter(visitsCsvFilePath, true);
-//                    CSVWriter csvWriter = new CSVWriter(fileWriter, CSVWriter.DEFAULT_SEPARATOR, CSVWriter.NO_QUOTE_CHARACTER,
-//                            CSVWriter.DEFAULT_ESCAPE_CHARACTER, CSVWriter.DEFAULT_LINE_END);
-//            ) {
-//                if(!doesVisitsFileExists) {
-//                    csvWriter.writeNext(new String[] {"URL", "Size (bytes)", "# of Outlinks", "Content-Type"});
-//                }
-//
-//                for (ListIterator<Visit> it = crawlData.getVisits().listIterator(); it.hasNext(); ) {
-//                    Visit visit = it.next();
-//                    csvWriter.writeNext(new String[] { visit.getUrl(), String.valueOf(visit.getSize()), String.valueOf(visit.getNumOfOutlinks()), visit.getContentType() });
-//                }
-//            }
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//            throw e;
-//        }
-//    }
-
 
     public static synchronized void saveToCsv(String outputDirectory, String domain, CrawlData crawlData) {
         // Create output directory if not present
@@ -202,14 +135,6 @@ public class Utils {
                 fetchStats.updateStatusCodeCount(fetch.getStatusCode());
             }
 
-            report.append(String.format("""
-                    \nFetch Statistics
-                    ================
-                    # fetches attempted: %d
-                    # fetches succeeded: %d
-                    # fetches failed or aborted: %d
-                    """, fetchStats.getTotalFetchCount(), fetchStats.getSucceededFetchCount(), fetchStats.getFailedFetchCount()));
-
             // Calculate URLs count
             Url.Stats urlStats = new Url.Stats();
 
@@ -221,6 +146,25 @@ public class Utils {
                 urlStats.addUrls(row[0].replace("\"", ""), row[1].replace("\"", ""));
             }
 
+            Iterator<Visit> visitIterator = Visit.loadVisitCsvStream(visitFilePath).iterator();
+            Visit.Stats visitStats = new Visit.Stats();
+
+            for (Iterator<Visit> it = visitIterator; it.hasNext();) {
+                Visit visit = it.next();
+                visitStats.addOutlinks(visit.getNumOfOutlinks());
+                visitStats.addContentType(visit);
+                visitStats.countFileSize(visit);
+            }
+
+            report.append(String.format("""
+                    \nFetch Statistics
+                    ================
+                    # fetches attempted: %d
+                    # fetches succeeded: %d
+                    # fetches failed or aborted: %d
+                    """, fetchStats.getTotalFetchCount(), fetchStats.getSucceededFetchCount(), fetchStats.getFailedFetchCount()));
+
+
             report.append(String.format("""
                     \nOutgoing URLs:
                     ==============
@@ -228,7 +172,7 @@ public class Utils {
                     # unique URLs extracted: %d
                     # unique URLs within News Site: %d
                     # unique URLs outside News Site: %d
-                    """, urlStats.getTotalCount(), urlStats.getUniqueUrlCount(), urlStats.getUniqueWithinUrlCount(), urlStats.getUniqueOutsideUrlCount()));
+                    """, visitStats.getTotalNumOfOutlinks(), urlStats.getUniqueUrlCount(), urlStats.getUniqueWithinUrlCount(), urlStats.getUniqueOutsideUrlCount()));
 
             report.append("""
                     \nStatus Codes:
@@ -239,16 +183,6 @@ public class Utils {
             for (Map.Entry<Integer, Integer> pair : fetchStats.getStatusCodeCounts().entrySet()) {
                 String statusCodeWithMessage = EnglishReasonPhraseCatalog.INSTANCE.getReason(pair.getKey(), Locale.ENGLISH);
                 report.append(String.format("%d %s: %d\n", pair.getKey(), statusCodeWithMessage, pair.getValue()));
-            }
-
-
-            Iterator<Visit> visitIterator = Visit.loadVisitCsvStream(visitFilePath).iterator();
-            Visit.Stats visitStats = new Visit.Stats();
-
-            for (Iterator<Visit> it = visitIterator; it.hasNext();) {
-                Visit visit = it.next();
-                visitStats.addContentType(visit);
-                visitStats.countFileSize(visit);
             }
 
             int[] fileSizeCountsByRange = visitStats.getFileSizeCountsByRange();
