@@ -126,9 +126,9 @@ public class Main {
             // NOTE: No need to aggregate thread results as CrawlData is Singleton and thread-safe
 
             // Store Stats
-            if(crawlData.getTotalUrls() > 0) {
-                CrawlData.saveToCsv(outputDirectory, domain);
-            }
+//            if(crawlData.getTotalUrls() > 0) {
+//                Utils.saveToCsv(crawlData, outputDirectory, domain);
+//            }
 
             // Store Report
             Utils.generateReport(outputDirectory, domain, author, id, numberOfCrawlers);

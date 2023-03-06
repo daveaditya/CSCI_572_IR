@@ -16,8 +16,6 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.regex.Pattern;
 
-import static edu.usc.csci572.CrawlData.saveToCsv;
-
 public class Crawler extends WebCrawler {
 
     private static final Logger logger = LoggerFactory.getLogger(Crawler.class);
@@ -117,16 +115,10 @@ public class Crawler extends WebCrawler {
         }
 
         // Save data based on after every batchSize number of fetches
-        synchronized (this) {
-            if (crawlData.getTotalUrls() % batchSize == 0) {
-                logger.debug("Saving stats now...");
-                try {
-                    saveToCsv(outputDirectory, domain);
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
-                }
-                crawlData.flush();
-            }
+        try {
+            Utils.saveToCsv(crawlData, outputDirectory, domain);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
     }
 
