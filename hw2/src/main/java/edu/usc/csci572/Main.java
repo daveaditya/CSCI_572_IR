@@ -124,10 +124,9 @@ public class Main {
             controller.start(factory, numberOfCrawlers);
 
             // NOTE: No need to aggregate thread results as CrawlData is Singleton and thread-safe
-
-            // Store Stats
+            // Store Stats if any left in the buffer.
             if(crawlData.getTotalUrls() % batchSize != 0) {
-                Utils.saveToCsv(outputDirectory, domain, crawlData);
+                CrawlData.saveToCsv(outputDirectory, domain);
             }
 
             // Store Report
