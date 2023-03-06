@@ -87,8 +87,6 @@ public class Crawler extends WebCrawler {
             return;
         }
 
-        this.crawlData.addFetch(new Fetch(docid, url, statusCode)); // record new fetch
-
         this.crawlData.incTotalUrls(); // increment total visited urls
 
         logger.debug("HERE### Total URLs: {}", crawlData.getTotalUrls());
@@ -115,13 +113,18 @@ public class Crawler extends WebCrawler {
         }
 
         // Save data based on after every batchSize number of fetches
-        // Save data based on after every batchSize number of fetches
-        synchronized (this) {
-            if (crawlData.getTotalUrls() % batchSize == 0) {
-                logger.debug("Saving stats now...");
-                Utils.saveToCsv(outputDirectory, domain, crawlData);
-            }
-        }
+//        synchronized (this) {
+//            if (crawlData.getTotalUrls() % batchSize == 0) {
+//                logger.debug("Saving stats now...");
+//                Utils.saveToCsv(outputDirectory, domain, crawlData);
+//            }
+//        }
+    }
+
+    @Override
+    protected void handlePageStatusCode(WebURL webUrl, int statusCode, String statusDescription) {
+        super.handlePageStatusCode(webUrl, statusCode, statusDescription);
+        this.crawlData.addFetch(new Fetch(webUrl.getDocid(), webUrl.getURL(), statusCode)); // record new fetch
     }
 
     @Override
