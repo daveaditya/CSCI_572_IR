@@ -115,10 +115,12 @@ public class Crawler extends WebCrawler {
         }
 
         // Save data based on after every batchSize number of fetches
-        try {
-            Utils.saveToCsv(crawlData, outputDirectory, domain);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+        // Save data based on after every batchSize number of fetches
+        synchronized (this) {
+            if (crawlData.getTotalUrls() % batchSize == 0) {
+                logger.debug("Saving stats now...");
+                Utils.saveToCsv(outputDirectory, domain, crawlData);
+            }
         }
     }
 

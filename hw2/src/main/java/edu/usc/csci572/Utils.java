@@ -1,6 +1,8 @@
 package edu.usc.csci572;
 
 import com.opencsv.CSVWriter;
+import com.opencsv.bean.StatefulBeanToCsv;
+import com.opencsv.bean.StatefulBeanToCsvBuilder;
 import edu.usc.csci572.beans.Fetch;
 import edu.usc.csci572.beans.Url;
 import edu.usc.csci572.beans.Visit;
@@ -34,7 +36,75 @@ public class Utils {
         }
     }
 
-    public static synchronized void saveToCsv(CrawlData crawlData, String outputDirectory, String domain) throws IOException {
+//    public static synchronized void saveToCsv(CrawlData crawlData, String outputDirectory, String domain) throws IOException {
+//        // Create output directory if not present
+//        createDirectoryIfNotExists(outputDirectory);
+//
+//        String identifier = domain.split("\\.")[0];
+//
+//        try {
+//            // Write CSV files
+//            // Store URLs
+//            String urlsCsvFilePath = String.format("%s/urls_%s.csv", outputDirectory, identifier);
+//            boolean doesUrlsFilesExists = Files.exists(Paths.get(urlsCsvFilePath));
+//            try (
+//                    FileWriter fileWriter = new FileWriter(urlsCsvFilePath, true);
+//                    CSVWriter csvWriter = new CSVWriter(fileWriter, CSVWriter.DEFAULT_SEPARATOR, CSVWriter.NO_QUOTE_CHARACTER,
+//                            CSVWriter.DEFAULT_ESCAPE_CHARACTER, CSVWriter.DEFAULT_LINE_END);
+//            ) {
+//                if(!doesUrlsFilesExists) {
+//                    csvWriter.writeNext(new String[] {"URL", "URL Type"});
+//                }
+//
+//                for (ListIterator<Url> it = crawlData.getUrls().listIterator(); it.hasNext(); ) {
+//                    Url url = it.next();
+//                    csvWriter.writeNext(new String[] { url.getUrl(), url.getWithinWebsite() });
+//                }
+//            }
+//
+//            // Store Fetches
+//            String fetchCsvFilePath = String.format("%s/fetch_%s.csv", outputDirectory, identifier);
+//            boolean doesFetchFileExists = Files.exists(Paths.get(fetchCsvFilePath));
+//            try (
+//                    FileWriter fileWriter = new FileWriter(fetchCsvFilePath, true);
+//                    CSVWriter csvWriter = new CSVWriter(fileWriter, CSVWriter.DEFAULT_SEPARATOR, CSVWriter.NO_QUOTE_CHARACTER,
+//                            CSVWriter.DEFAULT_ESCAPE_CHARACTER, CSVWriter.DEFAULT_LINE_END);
+//            ) {
+//                if(!doesFetchFileExists) {
+//                    csvWriter.writeNext(new String[] {"URL", "Status"});
+//                }
+//
+//                for (ListIterator<Fetch> it = crawlData.getFetches().listIterator(); it.hasNext(); ) {
+//                    Fetch fetch = it.next();
+//                    csvWriter.writeNext(new String[] { fetch.getUrl(), String.valueOf(fetch.getStatusCode()) });
+//                }
+//            }
+//
+//            // Store Visits
+//            String visitsCsvFilePath = String.format("%s/visit_%s.csv", outputDirectory, identifier);
+//            boolean doesVisitsFileExists = Files.exists(Paths.get(visitsCsvFilePath));
+//            try (
+//                    FileWriter fileWriter = new FileWriter(visitsCsvFilePath, true);
+//                    CSVWriter csvWriter = new CSVWriter(fileWriter, CSVWriter.DEFAULT_SEPARATOR, CSVWriter.NO_QUOTE_CHARACTER,
+//                            CSVWriter.DEFAULT_ESCAPE_CHARACTER, CSVWriter.DEFAULT_LINE_END);
+//            ) {
+//                if(!doesVisitsFileExists) {
+//                    csvWriter.writeNext(new String[] {"URL", "Size (bytes)", "# of Outlinks", "Content-Type"});
+//                }
+//
+//                for (ListIterator<Visit> it = crawlData.getVisits().listIterator(); it.hasNext(); ) {
+//                    Visit visit = it.next();
+//                    csvWriter.writeNext(new String[] { visit.getUrl(), String.valueOf(visit.getSize()), String.valueOf(visit.getNumOfOutlinks()), visit.getContentType() });
+//                }
+//            }
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//            throw e;
+//        }
+//    }
+
+
+    public static synchronized void saveToCsv(String outputDirectory, String domain, CrawlData crawlData) {
         // Create output directory if not present
         createDirectoryIfNotExists(outputDirectory);
 
@@ -43,61 +113,49 @@ public class Utils {
         try {
             // Write CSV files
             // Store URLs
-            String urlsCsvFilePath = String.format("%s/urls_%s.csv", outputDirectory, identifier);
-            boolean doesUrlsFilesExists = Files.exists(Paths.get(urlsCsvFilePath));
-            try (
-                    FileWriter fileWriter = new FileWriter(urlsCsvFilePath, true);
-                    CSVWriter csvWriter = new CSVWriter(fileWriter, CSVWriter.DEFAULT_SEPARATOR, CSVWriter.NO_QUOTE_CHARACTER,
-                            CSVWriter.DEFAULT_ESCAPE_CHARACTER, CSVWriter.DEFAULT_LINE_END);
-            ) {
-                if(!doesUrlsFilesExists) {
-                    csvWriter.writeNext(new String[] {"URL", "URL Type"});
-                }
+            Path urlsCsvFilePath = Paths.get(String.format("%s/urls_%s.csv", outputDirectory, identifier));
+            try (BufferedWriter writer = Files.newBufferedWriter(urlsCsvFilePath)) {
+                CustomMappingStrategy<Url> urlCustomMappingStrategy = new CustomMappingStrategy<>();
+                urlCustomMappingStrategy.setType(Url.class);
 
-                for (ListIterator<Url> it = crawlData.getUrls().listIterator(); it.hasNext(); ) {
-                    Url url = it.next();
-                    csvWriter.writeNext(new String[] { url.getUrl(), url.getWithinWebsite() });
-                }
+                StatefulBeanToCsv<Url> sbc = new StatefulBeanToCsvBuilder<Url>(writer)
+                        .withSeparator(CSVWriter.DEFAULT_SEPARATOR)
+                        .withMappingStrategy(urlCustomMappingStrategy)
+                        .build();
+
+                sbc.write(crawlData.getUrls());
             }
 
             // Store Fetches
-            String fetchCsvFilePath = String.format("%s/fetch_%s.csv", outputDirectory, identifier);
-            boolean doesFetchFileExists = Files.exists(Paths.get(fetchCsvFilePath));
-            try (
-                    FileWriter fileWriter = new FileWriter(fetchCsvFilePath, true);
-                    CSVWriter csvWriter = new CSVWriter(fileWriter, CSVWriter.DEFAULT_SEPARATOR, CSVWriter.NO_QUOTE_CHARACTER,
-                            CSVWriter.DEFAULT_ESCAPE_CHARACTER, CSVWriter.DEFAULT_LINE_END);
-            ) {
-                if(!doesFetchFileExists) {
-                    csvWriter.writeNext(new String[] {"URL", "Status"});
-                }
+            Path fetchCsvFilePath = Paths.get(String.format("%s/fetch_%s.csv", outputDirectory, identifier));
+            try (BufferedWriter writer = Files.newBufferedWriter(fetchCsvFilePath)) {
+                CustomMappingStrategy<Fetch> fetchCustomMappingStrategy = new CustomMappingStrategy<>();
+                fetchCustomMappingStrategy.setType(Fetch.class);
 
-                for (ListIterator<Fetch> it = crawlData.getFetches().listIterator(); it.hasNext(); ) {
-                    Fetch fetch = it.next();
-                    csvWriter.writeNext(new String[] { fetch.getUrl(), String.valueOf(fetch.getStatusCode()) });
-                }
+                StatefulBeanToCsv<Fetch> sbc = new StatefulBeanToCsvBuilder<Fetch>(writer)
+                        .withSeparator(CSVWriter.DEFAULT_SEPARATOR)
+                        .withMappingStrategy(fetchCustomMappingStrategy)
+                        .build();
+
+                sbc.write(crawlData.getFetches());
             }
 
             // Store Visits
-            String visitsCsvFilePath = String.format("%s/visit_%s.csv", outputDirectory, identifier);
-            boolean doesVisitsFileExists = Files.exists(Paths.get(visitsCsvFilePath));
-            try (
-                    FileWriter fileWriter = new FileWriter(visitsCsvFilePath, true);
-                    CSVWriter csvWriter = new CSVWriter(fileWriter, CSVWriter.DEFAULT_SEPARATOR, CSVWriter.NO_QUOTE_CHARACTER,
-                            CSVWriter.DEFAULT_ESCAPE_CHARACTER, CSVWriter.DEFAULT_LINE_END);
-            ) {
-                if(!doesVisitsFileExists) {
-                    csvWriter.writeNext(new String[] {"URL", "Size (bytes)", "# of Outlinks", "Content-Type"});
-                }
+            Path visitsCsvFilePath = Paths.get(String.format("%s/visit_%s.csv", outputDirectory, identifier));
+            try (BufferedWriter writer = Files.newBufferedWriter(visitsCsvFilePath)) {
+                CustomMappingStrategy<Visit> visitCustomMappingStrategy = new CustomMappingStrategy<>();
+                visitCustomMappingStrategy.setType(Visit.class);
 
-                for (ListIterator<Visit> it = crawlData.getVisits().listIterator(); it.hasNext(); ) {
-                    Visit visit = it.next();
-                    csvWriter.writeNext(new String[] { visit.getUrl(), String.valueOf(visit.getSize()), String.valueOf(visit.getNumOfOutlinks()), visit.getContentType() });
-                }
+                StatefulBeanToCsv<Visit> sbc = new StatefulBeanToCsvBuilder<Visit>(writer)
+                        .withSeparator(CSVWriter.DEFAULT_SEPARATOR)
+                        .withMappingStrategy(visitCustomMappingStrategy)
+                        .build();
+
+                sbc.write(crawlData.getVisits());
             }
         } catch (Exception e) {
             e.printStackTrace();
-            throw e;
+            logger.error(e.getMessage());
         }
     }
 
