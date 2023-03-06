@@ -10,10 +10,13 @@ import edu.usc.csci572.beans.Visit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.regex.Pattern;
+
+import static edu.usc.csci572.CrawlData.saveToCsv;
 
 public class Crawler extends WebCrawler {
 
@@ -117,7 +120,11 @@ public class Crawler extends WebCrawler {
         synchronized (this) {
             if (crawlData.getTotalUrls() % batchSize == 0) {
                 logger.debug("Saving stats now...");
-                CrawlData.saveToCsv(outputDirectory, domain);
+                try {
+                    saveToCsv(outputDirectory, domain);
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
                 crawlData.flush();
             }
         }

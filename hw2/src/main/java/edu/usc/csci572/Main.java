@@ -47,7 +47,7 @@ public class Main {
     @Parameter(names = {"--help", "-h"}, help = true, description = "Prints the usage of this program.")
     private boolean help = false;
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws Exception {
         Main main = new Main();
 
         JCommander jct = JCommander.newBuilder()
@@ -67,7 +67,7 @@ public class Main {
         return help;
     }
 
-    public void run() {
+    public void run() throws Exception {
         // If the parameter for number of threads is -1, use max available
         if(numberOfCrawlers == -1) {
             numberOfCrawlers = Runtime.getRuntime().availableProcessors();
@@ -135,7 +135,8 @@ public class Main {
 
             logger.info("Done.");
         } catch (Exception e) {
-            logger.error(e.getMessage());
+            e.printStackTrace();
+            throw e;
         }
     }
 

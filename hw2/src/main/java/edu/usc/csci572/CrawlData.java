@@ -8,6 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.FileWriter;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -75,7 +76,7 @@ public class CrawlData {
         this.totalUrls++;
     }
 
-    public static synchronized void saveToCsv(String outputDirectory, String domain) {
+    public static synchronized void saveToCsv(String outputDirectory, String domain) throws IOException {
         CrawlData crawlData = getInstance();
 
         // Create output directory if not present
@@ -137,15 +138,16 @@ public class CrawlData {
             }
         } catch (Exception e) {
             e.printStackTrace();
-            logger.error(e.getMessage());
+            throw e;
         }
     }
 
     public void flush() {
-        this.fetches.clear();
-        this.visits.clear();
-        this.urls.clear();
-        this.totalUrls = 0;
+        CrawlData instance = getInstance();
+        instance.fetches.clear();
+        instance.visits.clear();
+        instance.urls.clear();
+        instance.totalUrls = 0;
     }
 
     @Override
