@@ -2,6 +2,7 @@ package edu.usc.csci572;
 
 import edu.uci.ics.crawler4j.crawler.Page;
 import edu.uci.ics.crawler4j.crawler.WebCrawler;
+import edu.uci.ics.crawler4j.parser.BinaryParseData;
 import edu.uci.ics.crawler4j.parser.HtmlParseData;
 import edu.uci.ics.crawler4j.url.WebURL;
 import edu.usc.csci572.beans.Fetch;
@@ -10,6 +11,7 @@ import edu.usc.csci572.beans.Visit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
@@ -97,33 +99,40 @@ public class Crawler extends WebCrawler {
         logger.debug("HERE### Total URLs: {}", crawlData.getTotalUrls());
         logger.debug("Docid: {}, Url: {}, Content-Type: {}, Status Code: {}", docid, url, contentType, statusCode);
 
-        if (statusCode >= 200 && statusCode < 300) {
-            Visit visit = new Visit(); // create a new Visit
-            visit.setDocid(docid);
-            visit.setUrl(url);
+        Visit visit = new Visit(); // create a new Visit
+        visit.setDocid(docid);
+        visit.setUrl(url);
 
-            if (page.getParseData() instanceof HtmlParseData htmlParseData) {
-                Set<WebURL> links = htmlParseData.getOutgoingUrls();
+        if (page.getParseData() instanceof HtmlParseData htmlParseData) {
+            Set<WebURL> links = htmlParseData.getOutgoingUrls();
 
-                visit.setNumOfOutlinks(links.size()); // Store number of outlinks
-            }
+            visit.setNumOfOutlinks(links.size()); // Store number of outlinks
+        } else if (page.getParseData() instanceof BinaryParseData binaryParseData) {
+            Set<WebURL> links = binaryParseData.getOutgoingUrls();
 
-            visit.setContentType(contentType);
-
-            // Add content length for current fetch
-            int size = page.getContentData().length;
-            visit.setSize(size);
-
-            this.crawlData.addVisit(visit); // add Visit to the stats
+            visit.setNumOfOutlinks(links.size()); // Store number of outlinks
         }
 
+        visit.setContentType(contentType);
+
+        // Add content length for current fetch
+        int size = page.getContentData().length;
+        visit.setSize(size);
+
+        this.crawlData.addVisit(visit); // add Visit to the stats
+
         // Save data based on after every batchSize number of fetches
-//        synchronized (this) {
-//            if (crawlData.getTotalUrls() % batchSize == 0) {
-//                logger.debug("Saving stats now...");
-//                Utils.saveToCsv(outputDirectory, domain, crawlData);
-//            }
-//        }
+        synchronized (crawlData) {
+            if (crawlData.getTotalUrls() % batchSize == 0) {
+                logger.debug("Saving stats now...");
+                try {
+                    CrawlData.saveToCsv(outputDirectory, domain);
+                    crawlData.flush();
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        }
     }
 
     @Override

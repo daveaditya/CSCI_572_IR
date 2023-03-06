@@ -126,6 +126,8 @@ public class Visit implements Serializable {
 
     public static class Stats {
 
+        private long totalNumOfOutlinks;
+
         private final int[] fileSizeCountsByRange;
 
         private final Map<String, Long> contentTypeCounts;
@@ -135,8 +137,17 @@ public class Visit implements Serializable {
         private static final int MB = 1024 * KB;
 
         public Stats() {
+            this.totalNumOfOutlinks = 0;
             this.fileSizeCountsByRange = new int[]{ 0, 0, 0, 0, 0 };
             this.contentTypeCounts = new LinkedHashMap<>();
+        }
+
+        public long getTotalNumOfOutlinks() {
+            return totalNumOfOutlinks;
+        }
+
+        public void addOutlinks(long numOfOutlinks) {
+            this.totalNumOfOutlinks += numOfOutlinks;
         }
 
         public int[] getFileSizeCountsByRange() {
