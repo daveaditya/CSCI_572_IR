@@ -138,7 +138,7 @@ public class Crawler extends WebCrawler {
     @Override
     protected void handlePageStatusCode(WebURL webUrl, int statusCode, String statusDescription) {
         super.handlePageStatusCode(webUrl, statusCode, statusDescription);
-        crawlData.addFetch(new Fetch(webUrl.getDocid(), webUrl.getURL(), statusCode)); // record new fetch
+        crawlData.addFetch(new Fetch(webUrl.getDocid(), webUrl.getURL().replaceAll(",", "_"), statusCode)); // record new fetch
 
         crawlData.incTotalUrls(); // increment total visited urls
     }
