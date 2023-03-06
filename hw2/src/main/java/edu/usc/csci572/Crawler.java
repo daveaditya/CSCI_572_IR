@@ -94,8 +94,6 @@ public class Crawler extends WebCrawler {
             return;
         }
 
-        this.crawlData.incTotalUrls(); // increment total visited urls
-
         logger.debug("HERE### Total URLs: {}", crawlData.getTotalUrls());
         logger.debug("Docid: {}, Url: {}, Content-Type: {}, Status Code: {}", docid, url, contentType, statusCode);
 
@@ -131,7 +129,9 @@ public class Crawler extends WebCrawler {
     @Override
     protected void handlePageStatusCode(WebURL webUrl, int statusCode, String statusDescription) {
         super.handlePageStatusCode(webUrl, statusCode, statusDescription);
-        this.crawlData.addFetch(new Fetch(webUrl.getDocid(), webUrl.getURL(), statusCode)); // record new fetch
+        crawlData.addFetch(new Fetch(webUrl.getDocid(), webUrl.getURL(), statusCode)); // record new fetch
+
+        crawlData.incTotalUrls(); // increment total visited urls
     }
 
     @Override
