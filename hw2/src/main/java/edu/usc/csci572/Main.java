@@ -127,7 +127,7 @@ public class Main {
 
             // Store Stats
             if(crawlData.getTotalUrls() > 0) {
-                crawlData.saveToCsv(outputDirectory, domain);
+                CrawlData.saveToCsv(outputDirectory, domain);
             }
 
             // Store Report
