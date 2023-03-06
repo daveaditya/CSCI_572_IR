@@ -31,6 +31,9 @@ public class Utils {
     }
 
     public static synchronized void generateReport(String outputDirectory, String domain, String author, String id, int nThreads) {
+        // Create output directory if not present
+        createDirectoryIfNotExists(outputDirectory);
+
         String identifier = domain.split("\\.")[0];
 
         Path reportFilePath = Paths.get(String.format("%s/CrawlReport_%s.txt", outputDirectory, identifier));
@@ -39,7 +42,7 @@ public class Utils {
         Path visitFilePath = Paths.get(String.format("%s/visit_%s.csv", outputDirectory, identifier));
 
         try (
-                BufferedWriter writer = Files.newBufferedWriter(reportFilePath)
+            BufferedWriter writer = Files.newBufferedWriter(reportFilePath)
         ) {
             StringBuilder report = new StringBuilder();
 

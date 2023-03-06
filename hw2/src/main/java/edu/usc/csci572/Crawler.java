@@ -91,7 +91,7 @@ public class Crawler extends WebCrawler {
         this.crawlData.incTotalUrls(); // increment total visited urls
 
         logger.debug("HERE### Total URLs: {}", crawlData.getTotalUrls());
-        logger.debug("Docid: {}, Url: {}, Content-Type: {}", docid, url, contentType);
+        logger.debug("Docid: {}, Url: {}, Content-Type: {}, Status Code: {}", docid, url, contentType, statusCode);
 
         if (statusCode >= 200 && statusCode < 300) {
             Visit visit = new Visit(); // create a new Visit

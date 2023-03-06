@@ -90,10 +90,9 @@ public class CrawlData {
             boolean doesUrlsFilesExists = Files.exists(Paths.get(urlsCsvFilePath));
             try (
                 FileWriter fileWriter = new FileWriter(urlsCsvFilePath, true);
-            ) {
                 CSVWriter csvWriter = new CSVWriter(fileWriter, CSVWriter.DEFAULT_SEPARATOR, CSVWriter.NO_QUOTE_CHARACTER,
                         CSVWriter.DEFAULT_ESCAPE_CHARACTER, CSVWriter.DEFAULT_LINE_END);
-
+            ) {
                 if(!doesUrlsFilesExists) {
                     csvWriter.writeNext(new String[] {"URL", "URL Type"});
                 }
@@ -108,10 +107,9 @@ public class CrawlData {
             boolean doesFetchFileExists = Files.exists(Paths.get(fetchCsvFilePath));
             try (
                     FileWriter fileWriter = new FileWriter(fetchCsvFilePath, true);
+                    CSVWriter csvWriter = new CSVWriter(fileWriter, CSVWriter.DEFAULT_SEPARATOR, CSVWriter.NO_QUOTE_CHARACTER,
+                            CSVWriter.DEFAULT_ESCAPE_CHARACTER, CSVWriter.DEFAULT_LINE_END);
             ) {
-                CSVWriter csvWriter = new CSVWriter(fileWriter, CSVWriter.DEFAULT_SEPARATOR, CSVWriter.NO_QUOTE_CHARACTER,
-                        CSVWriter.DEFAULT_ESCAPE_CHARACTER, CSVWriter.DEFAULT_LINE_END);
-
                 if(!doesFetchFileExists) {
                     csvWriter.writeNext(new String[] {"URL", "Status"});
                 }
@@ -126,10 +124,9 @@ public class CrawlData {
             boolean doesVisitsFileExists = Files.exists(Paths.get(visitsCsvFilePath));
             try (
                     FileWriter fileWriter = new FileWriter(visitsCsvFilePath, true);
+                    CSVWriter csvWriter = new CSVWriter(fileWriter, CSVWriter.DEFAULT_SEPARATOR, CSVWriter.NO_QUOTE_CHARACTER,
+                            CSVWriter.DEFAULT_ESCAPE_CHARACTER, CSVWriter.DEFAULT_LINE_END);
             ) {
-                CSVWriter csvWriter = new CSVWriter(fileWriter, CSVWriter.DEFAULT_SEPARATOR, CSVWriter.NO_QUOTE_CHARACTER,
-                        CSVWriter.DEFAULT_ESCAPE_CHARACTER, CSVWriter.DEFAULT_LINE_END);
-
                 if(!doesVisitsFileExists) {
                     csvWriter.writeNext(new String[] {"URL", "Size (bytes)", "# of Outlinks", "Content-Type"});
                 }
