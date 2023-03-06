@@ -58,7 +58,7 @@ public class Crawler extends WebCrawler {
         // Store all the URLs checked or visited and also mention whether it is within the website or not
         this.crawlData.addUrl(new Url(
                 url.getDocid(),
-                urlSrc,
+                urlSrc.replaceAll(",", "_"), // replace comma by underscore as required by the homework
                 residesInside ? "OK" : "N_OK"
         ));
 
@@ -72,7 +72,7 @@ public class Crawler extends WebCrawler {
     @Override
     public void visit(Page page) {
         int docid = page.getWebURL().getDocid();
-        String url = page.getWebURL().getURL();
+        String url = page.getWebURL().getURL().replaceAll(",", "_");
         int statusCode = page.getStatusCode();
 
         // Get content type for current fetch; avoid charset=utf-8
@@ -117,7 +117,8 @@ public class Crawler extends WebCrawler {
         synchronized (this) {
             if (crawlData.getTotalUrls() % batchSize == 0) {
                 logger.debug("Saving stats now...");
-                Utils.writeCsvStats(outputDirectory, domain, crawlData);
+                CrawlData.saveToCsv(outputDirectory, domain);
+                crawlData.flush();
             }
         }
     }

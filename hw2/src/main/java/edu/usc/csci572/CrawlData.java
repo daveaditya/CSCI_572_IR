@@ -1,14 +1,30 @@
 package edu.usc.csci572;
 
+import com.opencsv.CSVWriter;
+import com.opencsv.bean.StatefulBeanToCsv;
+import com.opencsv.bean.StatefulBeanToCsvBuilder;
 import edu.usc.csci572.beans.Fetch;
 import edu.usc.csci572.beans.Url;
 import edu.usc.csci572.beans.Visit;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.nio.file.Files;
+import java.nio.file.OpenOption;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import static edu.usc.csci572.Utils.createDirectoryIfNotExists;
+
 public class CrawlData {
+
+    public static final Logger logger = LoggerFactory.getLogger(CrawlData.class);
 
     private final List<Url> urls;
 
@@ -63,6 +79,82 @@ public class CrawlData {
 
     public synchronized void incTotalUrls() {
         this.totalUrls++;
+    }
+
+    public static synchronized void saveToCsv(String outputDirectory, String domain) {
+        CrawlData crawlData = getInstance();
+
+        // Create output directory if not present
+        createDirectoryIfNotExists(outputDirectory);
+
+        String identifier = domain.split("\\.")[0];
+
+        try {
+            // Write CSV files
+            // Store URLs
+            String urlsCsvFilePath = String.format("%s/urls_%s.csv", outputDirectory, identifier);
+            boolean doesUrlsFilesExists = Files.exists(Paths.get(urlsCsvFilePath));
+            try (
+                FileWriter fileWriter = new FileWriter(urlsCsvFilePath, true);
+            ) {
+                CSVWriter csvWriter = new CSVWriter(fileWriter, CSVWriter.DEFAULT_SEPARATOR, CSVWriter.NO_QUOTE_CHARACTER,
+                        CSVWriter.DEFAULT_ESCAPE_CHARACTER, CSVWriter.DEFAULT_LINE_END);
+
+                if(!doesUrlsFilesExists) {
+                    csvWriter.writeNext(new String[] {"URL", "URL Type"});
+                }
+
+                for(Url url: crawlData.urls) {
+                    csvWriter.writeNext(new String[] { url.getUrl(), url.getWithinWebsite() });
+                }
+            }
+
+            // Store Fetches
+            String fetchCsvFilePath = String.format("%s/fetch_%s.csv", outputDirectory, identifier);
+            boolean doesFetchFileExists = Files.exists(Paths.get(fetchCsvFilePath));
+            try (
+                    FileWriter fileWriter = new FileWriter(fetchCsvFilePath, true);
+            ) {
+                CSVWriter csvWriter = new CSVWriter(fileWriter, CSVWriter.DEFAULT_SEPARATOR, CSVWriter.NO_QUOTE_CHARACTER,
+                        CSVWriter.DEFAULT_ESCAPE_CHARACTER, CSVWriter.DEFAULT_LINE_END);
+
+                if(!doesFetchFileExists) {
+                    csvWriter.writeNext(new String[] {"URL", "Status"});
+                }
+
+                for(Fetch fetch: crawlData.fetches) {
+                    csvWriter.writeNext(new String[] { fetch.getUrl(), String.valueOf(fetch.getStatusCode()) });
+                }
+            }
+
+            // Store Visits
+            String visitsCsvFilePath = String.format("%s/visit_%s.csv", outputDirectory, identifier);
+            boolean doesVisitsFileExists = Files.exists(Paths.get(visitsCsvFilePath));
+            try (
+                    FileWriter fileWriter = new FileWriter(visitsCsvFilePath, true);
+            ) {
+                CSVWriter csvWriter = new CSVWriter(fileWriter, CSVWriter.DEFAULT_SEPARATOR, CSVWriter.NO_QUOTE_CHARACTER,
+                        CSVWriter.DEFAULT_ESCAPE_CHARACTER, CSVWriter.DEFAULT_LINE_END);
+
+                if(!doesVisitsFileExists) {
+                    csvWriter.writeNext(new String[] {"URL", "Size (bytes)", "# of Outlinks", "Content-Type"});
+                }
+
+                for(Visit visit: crawlData.visits) {
+                    csvWriter.writeNext(new String[] { visit.getUrl(), String.valueOf(visit.getSize()), String.valueOf(visit.getNumOfOutlinks()), visit.getContentType() });
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            logger.error(e.getMessage());
+        }
+    }
+
+    public void flush() {
+        this.fetches.clear();
+        this.visits.clear();
+        this.urls.clear();
+        this.totalUrls = 0;
     }
 
     @Override

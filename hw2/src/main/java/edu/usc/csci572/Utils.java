@@ -1,8 +1,5 @@
 package edu.usc.csci572;
 
-import com.opencsv.CSVWriter;
-import com.opencsv.bean.StatefulBeanToCsv;
-import com.opencsv.bean.StatefulBeanToCsvBuilder;
 import edu.usc.csci572.beans.Fetch;
 import edu.usc.csci572.beans.Url;
 import edu.usc.csci572.beans.Visit;
@@ -23,72 +20,17 @@ public class Utils {
 
     private static final Logger logger = LoggerFactory.getLogger(Utils.class);
 
-    private static void createOutputDirectoryIfNotExists(String outputDirectory) {
+    public static void createDirectoryIfNotExists(String directory) {
         // Create output directory if not present
-        File dir = new File(outputDirectory);
+        File dir = new File(directory);
         if (!dir.exists()) {
             if (!dir.mkdirs()) {
-                throw new RuntimeException(String.format("Cannot create output path: %s", outputDirectory));
+                throw new RuntimeException(String.format("Cannot create output path: %s", directory));
             }
         }
     }
 
-    public static synchronized void writeCsvStats(String outputDirectory, String domain, CrawlData crawlData) {
-        // Create output directory if not present
-        createOutputDirectoryIfNotExists(outputDirectory);
-
-        String identifier = domain.split("\\.")[0];
-
-        try {
-            // Write CSV files
-            // Store URLs
-            Path urlsCsvFilePath = Paths.get(String.format("%s/urls_%s.csv", outputDirectory, identifier));
-            try (BufferedWriter writer = Files.newBufferedWriter(urlsCsvFilePath)) {
-                CustomMappingStrategy<Url> urlCustomMappingStrategy = new CustomMappingStrategy<>();
-                urlCustomMappingStrategy.setType(Url.class);
-
-                StatefulBeanToCsv<Url> sbc = new StatefulBeanToCsvBuilder<Url>(writer)
-                        .withSeparator(CSVWriter.DEFAULT_SEPARATOR)
-                        .withMappingStrategy(urlCustomMappingStrategy)
-                        .build();
-
-                sbc.write(crawlData.getUrls());
-            }
-
-            // Store Fetches
-            Path fetchCsvFilePath = Paths.get(String.format("%s/fetch_%s.csv", outputDirectory, identifier));
-            try (BufferedWriter writer = Files.newBufferedWriter(fetchCsvFilePath)) {
-                CustomMappingStrategy<Fetch> fetchCustomMappingStrategy = new CustomMappingStrategy<>();
-                fetchCustomMappingStrategy.setType(Fetch.class);
-
-                StatefulBeanToCsv<Fetch> sbc = new StatefulBeanToCsvBuilder<Fetch>(writer)
-                        .withSeparator(CSVWriter.DEFAULT_SEPARATOR)
-                        .withMappingStrategy(fetchCustomMappingStrategy)
-                        .build();
-
-                sbc.write(crawlData.getFetches());
-            }
-
-            // Store Visits
-            Path visitsCsvFilePath = Paths.get(String.format("%s/visit_%s.csv", outputDirectory, identifier));
-            try (BufferedWriter writer = Files.newBufferedWriter(visitsCsvFilePath)) {
-                CustomMappingStrategy<Visit> visitCustomMappingStrategy = new CustomMappingStrategy<>();
-                visitCustomMappingStrategy.setType(Visit.class);
-
-                StatefulBeanToCsv<Visit> sbc = new StatefulBeanToCsvBuilder<Visit>(writer)
-                        .withSeparator(CSVWriter.DEFAULT_SEPARATOR)
-                        .withMappingStrategy(visitCustomMappingStrategy)
-                        .build();
-
-                sbc.write(crawlData.getVisits());
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-            logger.error(e.getMessage());
-        }
-    }
-
-    public static synchronized void writeStatsReport(String outputDirectory, String domain, String author, String id, int nThreads) {
+    public static synchronized void generateReport(String outputDirectory, String domain, String author, String id, int nThreads) {
         String identifier = domain.split("\\.")[0];
 
         Path reportFilePath = Paths.get(String.format("%s/CrawlReport_%s.txt", outputDirectory, identifier));

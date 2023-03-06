@@ -126,10 +126,12 @@ public class Main {
             // NOTE: No need to aggregate thread results as CrawlData is Singleton and thread-safe
 
             // Store Stats
-            Utils.writeCsvStats(outputDirectory, domain, crawlData);
+            if(crawlData.getTotalUrls() > 0) {
+                crawlData.saveToCsv(outputDirectory, domain);
+            }
 
             // Store Report
-            Utils.writeStatsReport(outputDirectory, domain, author, id, numberOfCrawlers);
+            Utils.generateReport(outputDirectory, domain, author, id, numberOfCrawlers);
 
             logger.info("Done.");
         } catch (Exception e) {
