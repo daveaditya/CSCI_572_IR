@@ -121,6 +121,7 @@ public class Utils {
                 StatefulBeanToCsv<Url> sbc = new StatefulBeanToCsvBuilder<Url>(writer)
                         .withSeparator(CSVWriter.DEFAULT_SEPARATOR)
                         .withMappingStrategy(urlCustomMappingStrategy)
+                        .withQuotechar(CSVWriter.NO_QUOTE_CHARACTER)
                         .build();
 
                 sbc.write(crawlData.getUrls());
@@ -135,6 +136,7 @@ public class Utils {
                 StatefulBeanToCsv<Fetch> sbc = new StatefulBeanToCsvBuilder<Fetch>(writer)
                         .withSeparator(CSVWriter.DEFAULT_SEPARATOR)
                         .withMappingStrategy(fetchCustomMappingStrategy)
+                        .withQuotechar(CSVWriter.NO_QUOTE_CHARACTER)
                         .build();
 
                 sbc.write(crawlData.getFetches());
@@ -149,6 +151,7 @@ public class Utils {
                 StatefulBeanToCsv<Visit> sbc = new StatefulBeanToCsvBuilder<Visit>(writer)
                         .withSeparator(CSVWriter.DEFAULT_SEPARATOR)
                         .withMappingStrategy(visitCustomMappingStrategy)
+                        .withQuotechar(CSVWriter.NO_QUOTE_CHARACTER)
                         .build();
 
                 sbc.write(crawlData.getVisits());
