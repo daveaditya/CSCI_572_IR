@@ -10,7 +10,6 @@ import edu.usc.csci572.beans.Visit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
@@ -56,12 +55,20 @@ public class Crawler extends WebCrawler {
         String href = urlSrc.toLowerCase();
         boolean residesInside = href.matches("https?://(www.)?" + domain + "/?.*");
 
-        // Store all the URLs checked or visited and also mention whether it is within the website or not
-        this.crawlData.addUrl(new Url(
+        Url urlObj = new Url(
                 url.getDocid(),
                 urlSrc.replaceAll(",", "_"), // replace comma by underscore as required by the homework
                 residesInside ? "OK" : "N_OK"
-        ));
+        );
+
+        // Do not crawl an already visited URL
+        if(this.crawlData.find(urlSrc.replaceAll(",", "_"))) {
+            this.crawlData.addUrl(urlObj);
+            return false;
+        }
+
+        // Store all the URLs checked or visited and also mention whether it is within the website or not
+        this.crawlData.addUrl(urlObj);
 
         return !EXCLUSIONS.matcher(href).matches() && residesInside;
     }
@@ -77,7 +84,7 @@ public class Crawler extends WebCrawler {
         int statusCode = page.getStatusCode();
 
         // Get content type for current fetch; avoid charset=utf-8
-        String contentType = page.getContentType().split(";")[0];
+        String contentType = page.getContentType().split(";")[0].toLowerCase();
 
         // IMPORTANT: Need to check if the content is the desired on as some URLs might not have extensions
         // If the content type is not allowed, skip it.

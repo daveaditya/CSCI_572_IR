@@ -1,19 +1,16 @@
 package edu.usc.csci572;
 
-import com.opencsv.CSVWriter;
 import edu.usc.csci572.beans.Fetch;
 import edu.usc.csci572.beans.Url;
 import edu.usc.csci572.beans.Visit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.FileWriter;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
 import static edu.usc.csci572.Utils.createDirectoryIfNotExists;
 
@@ -27,6 +24,8 @@ public class CrawlData {
 
     private final List<Visit> visits;
 
+    private final Set<String> uniqueUrls;
+
     private int totalUrls = 0;
 
     private static CrawlData _crawlData = null;
@@ -35,6 +34,7 @@ public class CrawlData {
         this.urls = new ArrayList<>();
         this.fetches = new ArrayList<>();
         this.visits = new ArrayList<>();
+        this.uniqueUrls = new LinkedHashSet<>();
     }
 
     public static synchronized CrawlData getInstance() {
@@ -50,6 +50,7 @@ public class CrawlData {
 
     public synchronized void addUrl(Url url) {
         this.urls.add(url);
+        this.uniqueUrls.add(url.getUrl());
     }
 
     public List<Fetch> getFetches() {
@@ -77,7 +78,11 @@ public class CrawlData {
     }
 
 
-    public void flush() {
+    public synchronized boolean find(String url) {
+        return this.uniqueUrls.contains(url);
+    }
+
+    public synchronized void flush() {
         CrawlData instance = getInstance();
         instance.fetches.clear();
         instance.visits.clear();
