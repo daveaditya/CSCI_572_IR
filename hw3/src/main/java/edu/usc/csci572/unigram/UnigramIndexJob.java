@@ -6,6 +6,7 @@ import org.apache.hadoop.mapreduce.Reducer;
 
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Locale;
 import java.util.Map;
 import java.util.StringTokenizer;
@@ -41,7 +42,7 @@ public class UnigramIndexJob {
 
         @Override
         public void reduce(Text key, Iterable<Text> documentIds, Context context) throws IOException, InterruptedException {
-            Map<String, Integer> frequencies = new HashMap<>();
+            Map<String, Integer> frequencies = new LinkedHashMap<>();
 
             // Go over all the document ids and create a HashMap with counts
             for (Text documentId : documentIds) {
