@@ -4,3 +4,4 @@ data/*
 out/*
 submission/**/selected_bigram_index.txt
 submission/**/unigram_index.txt
+submission/**/submission.zip
