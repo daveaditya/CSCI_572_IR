@@ -1,5 +1,7 @@
 package edu.usc.csci572.unigram;
 
+import com.beust.jcommander.JCommander;
+import com.beust.jcommander.Parameter;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
@@ -12,7 +14,39 @@ import java.io.IOException;
 
 public class Main {
 
+    @Parameter(names = {"--in"}, description = "Input directory of text files.")
+    private String inputPath = "in";
+
+    @Parameter(names = {"--out"}, description = "Output directory for Hadoop.")
+    private String outputPath = "out";
+
+    @Parameter(names = {"--auto-remove"}, description = "Deletes the output directory, if present")
+    private boolean autoRemove = false;
+
+    @Parameter(names = {"--help", "-h"}, help = true, description = "Prints the usage of this program.")
+    private boolean help = false;
+
     public static void main(String[] args) throws IOException, InterruptedException, ClassNotFoundException {
+        Main main = new Main();
+
+        JCommander jct = JCommander.newBuilder()
+                .addObject(main)
+                .build();
+        jct.setProgramName("hw3-1.0.jar edu.usc.csci572.unigram.Main");
+        jct.parse(args);
+        if(main.isHelp()) {
+            jct.usage();
+            System.exit(0);
+        }
+
+        main.run();
+    }
+
+    public boolean isHelp() {
+        return help;
+    }
+
+    public void run() throws IOException, InterruptedException, ClassNotFoundException {
         Configuration conf = new Configuration();
         Job job = Job.getInstance(conf, "Inverted Index Job");
 
@@ -24,13 +58,15 @@ public class Main {
         job.setOutputValueClass(Text.class);
 
         // In and Out Paths
-        Path inPath = new Path(args[0]);
-        Path outPath = new Path(args[1]);
+        Path inPath = new Path(this.inputPath);
+        Path outPath = new Path(this.outputPath);
 
-        // Delete output path if already exists
-        FileSystem fs = outPath.getFileSystem(conf);
-        if (fs.exists(outPath)) {
-            fs.delete(outPath, true);
+        if(this.autoRemove) {
+            // Delete output path if already exists
+            FileSystem fs = outPath.getFileSystem(conf);
+            if (fs.exists(outPath)) {
+                fs.delete(outPath, true);
+            }
         }
 
         FileInputFormat.addInputPath(job, inPath);
