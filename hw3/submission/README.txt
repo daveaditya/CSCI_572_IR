@@ -1,7 +1,17 @@
 Dear Instructors,
 
 The submitted code was ran on the "ORIGINAL DATASET" provided i.e. data.zip.
-The code.zip contains the source code which is a gradle project.
+
+The new_dataset directory contains the unigram inverted index, selected bigram index, and corresponding screenshots
+for the new shortened dataset.
+
+Mapper-Reducer code can be found in the unigram_code.java and bigram_code.java for Unigram and Bigram Jobs respectively.
+
+---------
+
+Additional Information:
+
+The code.zip contains the actual source code which is a gradle project.
 Java version used 19.0.1.
 
 Note:
