@@ -3,7 +3,7 @@ Dear Instructors,
 The submitted code was ran on the "ORIGINAL DATASET" provided i.e. data.zip.
 
 The new_dataset directory contains the unigram inverted index, selected bigram index, and corresponding screenshots
-for the new shortened dataset.
+for the "NEW DATASET" i.e. data2.zip.
 
 Mapper-Reducer code can be found in the unigram_code.java and bigram_code.java for Unigram and Bigram Jobs respectively.
 
