@@ -1,0 +1,9 @@
+{
+  "name": "typescript",
+  "version": "0.0.0",
+  "private": true,
+  "dependencies": {
+    "@types/lunr": "^2.3.2",
+    "lunr": "^2.3.8"
+  }
+}
