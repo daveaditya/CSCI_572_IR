@@ -1,0 +1,7 @@
+data/*
+!data/HW3.pdf
+!data/output_sample.png
+out/*
+submission/**/selected_bigram_index.txt
+submission/**/unigram_index.txt
+submission/**/submission.zip
