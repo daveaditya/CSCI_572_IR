@@ -1,0 +1,92 @@
+<!-- mod from https://lunrjs.com/guides/getting_started.html -->
+
+<!-- note that this repl can also be run via
+https://trivialgrouchyscreenscraper.satychary.repl.co :) -->
+
+<head>
+  <script src="https://bytes.usc.edu/~saty/tools/xem/c/prtt.js">        </script>
+
+  <script src="https://unpkg.com/lunr/lunr.js"></script>
+</head>
+<!------------------------------------------------------------------>
+<!------------------------------------------------------------------>
+
+<body>
+  <p>...</p>
+  <pre style="font-size:15px; width:99%; height:400px; border:1px solid black; overflow:auto" id="tester"></pre>
+  <hr>
+  <script>
+
+
+
+    function indexAndSearch(t) {
+
+      let arr = t.split(/\r?\n/); // makes a STRING array
+      //prtt("Array: ", arr);
+      let objs = [];
+      for (var i = 0; i < arr.length; i++) {
+        //prtt("Parsing ", arr[i]);
+        var x = JSON.parse(arr[i]); // need to convert STRING to OBJECT
+        //prtt(x);
+        objs.push(x);
+      }
+      //prtt("Extracted " + objs.length + " records");
+
+      var documents = objs;
+      prtt("Indexing " + documents.length + " docs");
+      //////////////////////////////////////////////////////////////
+
+
+      //////////////////////////////////////////////////////////////
+      // build the index!
+      var idx = lunr(function () {
+        this.ref('movieName'); // column to output, as the search response
+        this.field('rating'); // column to search on 
+        //this.metadataWhitelist = ['position'];
+
+        // fetch each document (via 'doc'), add it to content to be indexed
+        documents.forEach(function (doc) {
+          this.add(doc);
+        }, this)
+      });
+      // prtt(idx); // our cool inverted index :)
+      //////////////////////////////////////////////////////////////
+
+      prtt("\n\n\n");
+
+      //////////////////////////////////////////////////////////////
+      var results = [];
+
+      const range_start = 7.0;
+      const range_end = 8.5;
+
+      prtt("Searching for all movies with rating from: " + range_start + " TO " + range_end + "\n");
+
+      for (var i = range_start; i <= range_end; i += 0.1) {
+        var sub_results = idx.search(i.toFixed(1).toString());
+
+        if (sub_results.length) {
+          results.push(...sub_results);
+        }
+      }
+
+
+      var final_result = results.map(result => result.ref);
+
+      prtt("# of Result(s): " + final_result.length + "\n");
+
+      prtt("Result[s]: ", final_result);
+      //////////////////////////////////////////////////////////////
+    }// indexAndSearch()
+
+
+    // fetch a JSON list (NOT in valid JSON format - this is a newline-separated list of individual JSONs!), then pass it to indexAndSlearch() above :)
+    fetch('./fun.jsonl')
+      .then(response => response.text())
+      .then(text => indexAndSearch(text))
+      .catch(err => console.log(err));
+
+  </script>
+</body>
+<!------------------------------------------------------------------>
+<!------------------------------------------------------------------>
