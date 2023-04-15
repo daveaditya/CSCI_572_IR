@@ -24,6 +24,8 @@ Movie and the corresponding rating data was created from IMDB. An example entry 
 A range search was perform ed for the range 7 to 8.5, and the number of results obtained was 8.
 File: task_2.png
 
+Link to Repl.it: https://replit.com/@daveaditya/CSCI572HW4task2
+
 
 
 Task 3
@@ -33,7 +35,7 @@ Following are the searches and their corresponding result count,
 1. Search term: "both", number of results: 3 (File: task_3.png)
 2. Search term: "among", number of results: 5 (File: task_3.png)
 
-
+Link to StackBlitz: https://stackblitz.com/edit/csci5720-hw4-task3?file=index.ts
 
 Task 4
 
