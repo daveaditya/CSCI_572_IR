@@ -1,15 +1,15 @@
 echo '{
   "query": "{
     Get{
-      SimSearch (
-        limit: 3
+      MovieSearch (
+        limit: 5
         nearText: {
-          concepts: [\"physics\"],
+          concepts: [\"princess\"],
         }
       ){
-        question
-        answer
-        category
+        movieName
+        director
+        plot
       }
     }
   }"
@@ -17,4 +17,4 @@ echo '{
     -X POST \
     -H 'Content-Type: application/json' \
     -d @- \
-    localhost:8080/v1/graphql 
+    localhost:8080/v1/graphql

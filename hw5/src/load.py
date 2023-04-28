@@ -8,12 +8,12 @@ client = Client(
 
 try:
     # specify schema for the data we'll be using 
-    client.schema.delete_class("SimSearch") 
+    client.schema.delete_class("MovieSearch") 
 except Exception as e:
     print(e)
 
 class_obj = {
-    "class": "SimSearch",
+    "class": "MovieSearch",
     "vectorizer": "text2vec-transformers"
 }
 client.schema.create_class(class_obj)
@@ -33,10 +33,10 @@ with client.batch as batch:
         print(f"\nimporting datum: {i}")
 
         properties = {
-            "answer": d["Answer"],
-            "question": d["Question"],
-            "category": d["Category"],
+            "movieName": d["movieName"],
+            "director": d["director"],
+            "plot": d["plot"],
         }
         print(f"properties: {properties}")
 
-        client.batch.add_data_object(properties, "SimSearch")
+        client.batch.add_data_object(properties, "MovieSearch")
